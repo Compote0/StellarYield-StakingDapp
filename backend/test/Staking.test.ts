@@ -7,7 +7,7 @@ describe("Staking Tests", function () {
     const [owner, addr1, addr2, addr3] = await ethers.getSigners();
 
     // Deploy staking contract with the address of the sMATIC token contract
-    const Staking = await ethers.getContractFactory("Staking");
+    const Staking = await (ethers as any).getContractFactory("Staking");
     const staking = await Staking.deploy();
     await staking.waitForDeployment();
 
