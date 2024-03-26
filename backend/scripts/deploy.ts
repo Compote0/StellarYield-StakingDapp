@@ -1,18 +1,18 @@
 import { ethers } from "hardhat";
 
-async function deployRewardTokenContract() {
+async function deployStakingContract() {
 
-	console.log(`Start deploying reward token contract...`);
+	console.log(`Start deploying staking contract...`);
 	
-	const RewardToken = await ethers.deployContract("RewardToken");
-	await RewardToken.waitForDeployment();
+	const Staking = await ethers.deployContract("Staking");
+	await Staking.waitForDeployment();
 	
-	console.log(`Reward Token contract is deployed to ${RewardToken.target}`);
+	console.log(`Staking contract is deployed to ${Staking.target}`);
 	
-	return RewardToken;
+	return Staking;
 }
 	  
-deployRewardTokenContract().catch((error) => {
+deployStakingContract().catch((error) => {
 	console.error(error);
 	process.exitCode = 1;
 });

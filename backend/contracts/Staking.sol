@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity 0.8.24;
 
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "./RewardToken.sol"; 
 
-contract Staking is Ownable, ReentrancyGuard {
-    RewardToken public sMaticToken;
+contract Staking is ERC20, Ownable, ReentrancyGuard {
     uint256 public constant WEEK = 7 days;
-    uint256 public apr; 
+    uint256 public apr;
 
     mapping(address => uint256) public stakedBalances;
     mapping(address => uint256) public lastClaimTime;
@@ -17,16 +16,14 @@ contract Staking is Ownable, ReentrancyGuard {
     event Claimed(address indexed user, uint256 reward);
     event Withdrawn(address indexed user, uint256 amount);
 
-    constructor(RewardToken _sMaticToken) Ownable(msg.sender) {
-        sMaticToken = _sMaticToken;
-    }
+    constructor() ERC20("Staked MATIC", "sMATIC") Ownable(msg.sender) {}
 
     function stake() public payable nonReentrant {
         require(msg.value > 0, "Staking amount must be more than zero");
         uint256 amount = msg.value;
 
         // Mint sMATIC tokens to the staker
-        sMaticToken.mint(msg.sender, amount);
+        _mint(msg.sender, amount);
 
         stakedBalances[msg.sender] += amount;
         lastClaimTime[msg.sender] = block.timestamp;
@@ -42,7 +39,7 @@ contract Staking is Ownable, ReentrancyGuard {
         uint256 reward = calculateReward(stakedBalances[msg.sender], timeElapsed);
 
         // Mint sMATIC tokens as rewards to the staker
-        sMaticToken.mint(msg.sender, reward);
+        _mint(msg.sender, reward);
         lastClaimTime[msg.sender] = block.timestamp;
 
         emit Claimed(msg.sender, reward);
@@ -54,7 +51,7 @@ contract Staking is Ownable, ReentrancyGuard {
         stakedBalances[msg.sender] -= amount;
 
         // Burn sMATIC tokens
-        sMaticToken.burn(msg.sender, amount);
+        _burn(msg.sender, amount);
 
         // Send back MATIC to the user
         payable(msg.sender).transfer(amount);
@@ -64,7 +61,7 @@ contract Staking is Ownable, ReentrancyGuard {
 
     function calculateReward(uint256 userStakedAmount, uint256 timeStaked) public view returns (uint256) {
         uint256 totalStaked = address(this).balance; // Total value locked in the contract
-        uint256 userStakeShare = userStakedAmount * 1e18 / totalStaked; // User's share of the total stake, multiplied by 1e18 
+        uint256 userStakeShare = userStakedAmount * 1e18 / totalStaked; // User's share of the total stake, multiplied by 1e18
 
         uint256 adjustedApr = apr;
 
@@ -82,5 +79,4 @@ contract Staking is Ownable, ReentrancyGuard {
 
         return finalReward;
     }
-
 }
