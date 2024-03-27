@@ -12,11 +12,19 @@ contract Staking is ERC20, Ownable, ReentrancyGuard {
     mapping(address => uint256) public stakedBalances;
     mapping(address => uint256) public lastClaimTime;
 
-    event Staked(address indexed user, uint256 amount, uint256 time);
-    event Claimed(address indexed user, uint256 reward);
-    event Withdrawn(address indexed user, uint256 amount);
+    event Staked(address user, uint256 amount, uint256 time);
+    event Claimed(address user, uint256 reward);
+    event Withdrawn(address user, uint256 amount);
 
     constructor() ERC20("Staked MATIC", "sMATIC") Ownable(msg.sender) {}
+    
+    function getTotalStakedBalance() public view returns (uint256) {
+        return address(this).balance;
+    }
+
+    function getUserBalance(address user) public view returns (uint256) {
+        return stakedBalances[user];
+    }
 
     function stake() public payable nonReentrant {
         require(msg.value > 0, "Staking amount must be more than zero");
