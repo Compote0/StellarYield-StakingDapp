@@ -7,26 +7,28 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 contract Staking is ERC20, Ownable, ReentrancyGuard {
     uint256 public constant WEEK = 7 days;
+    // uint256 public constant MAX_APR = 500;
     uint256 public apr;
+    uint256 private totalStaked;
 
     mapping(address => uint256) public stakedBalances;
     mapping(address => uint256) public lastClaimTime;
 
     event Staked(address user, uint256 amount, uint256 time);
     event Claimed(address user, uint256 reward);
-    event Withdrawn(address user, uint256 amount);
+    event Withdrawn(address user, uint256 amount, uint256 time);
 
     constructor() ERC20("Staked MATIC", "sMATIC") Ownable(msg.sender) {}
     
-    function getTotalStakedBalance() public view returns (uint256) {
-        return address(this).balance;
+    function getTotalStakedBalance() external view returns (uint256) {
+        return totalStaked;
     }
 
-    function getUserBalance(address user) public view returns (uint256) {
+    function getUserBalance(address user) external view returns (uint256) {
         return stakedBalances[user];
     }
 
-    function stake() public payable nonReentrant {
+    function stake() external payable nonReentrant {
         require(msg.value > 0, "Staking amount must be more than zero");
         uint256 amount = msg.value;
 
@@ -34,12 +36,13 @@ contract Staking is ERC20, Ownable, ReentrancyGuard {
         _mint(msg.sender, amount);
 
         stakedBalances[msg.sender] += amount;
+        totalStaked += amount; 
         lastClaimTime[msg.sender] = block.timestamp;
 
         emit Staked(msg.sender, amount, block.timestamp);
     }
 
-    function claim() public nonReentrant {
+    function claim() external nonReentrant {
         require(stakedBalances[msg.sender] > 0, "No staked MATIC to claim rewards from");
         require(lastClaimTime[msg.sender] + WEEK <= block.timestamp, "Rewards can only be claimed once a week");
 
@@ -53,10 +56,11 @@ contract Staking is ERC20, Ownable, ReentrancyGuard {
         emit Claimed(msg.sender, reward);
     }
 
-    function withdraw(uint256 amount) public nonReentrant {
+    function withdraw(uint256 amount) external nonReentrant {
         require(amount <= stakedBalances[msg.sender], "Cannot withdraw more than the staked amount");
 
         stakedBalances[msg.sender] -= amount;
+        totalStaked -= amount; 
 
         // Burn sMATIC tokens
         _burn(msg.sender, amount);
@@ -64,11 +68,10 @@ contract Staking is ERC20, Ownable, ReentrancyGuard {
         // Send back MATIC to the user
         payable(msg.sender).transfer(amount);
 
-        emit Withdrawn(msg.sender, amount);
+        emit Withdrawn(msg.sender, amount, block.timestamp);
     }
 
     function calculateReward(uint256 userStakedAmount, uint256 timeStaked) public view returns (uint256) {
-        uint256 totalStaked = address(this).balance; // Total value locked in the contract
         uint256 userStakeShare = userStakedAmount * 1e18 / totalStaked; // User's share of the total stake, multiplied by 1e18
 
         uint256 adjustedApr = apr;

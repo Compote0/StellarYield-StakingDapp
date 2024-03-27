@@ -37,8 +37,8 @@ describe("Staking Tests", function () {
         });
     });
 
-    // Group tests related to staking functionality
-    describe("Staking", function () {
+    // Group tests related to get balances
+    describe("Balances", function () {
         // Test for returning the total staked balance
         it("should return total staked balance", async function () {
           const { staking, addr1, addr2 } = await loadFixture(deployStakingContract);
@@ -67,7 +67,11 @@ describe("Staking Tests", function () {
           await staking.connect(addr1).stake({ value: stakeAmount });
           // Expect the user balance to match the staked amount
           expect(await staking.getUserBalance(addr1.address)).to.equal(stakeAmount);
-        });      
+        });  
+    });
+
+    // Group tests related to staking functionality
+    describe("Staking", function () {    
         // Test to ensure staking 0 value is reverted
         it("should revert stake because amount cannot be 0", async function () {
           const { staking, addr1 } = await loadFixture(deployStakingContract);
@@ -106,11 +110,62 @@ describe("Staking Tests", function () {
 
           // Retrieve the block in which the transaction was mined to get its timestamp
           const block = await ethers.provider.getBlock(tx.blockNumber);
-          
+
           // Expect the Staked event to be emitted with the correct address, amount, and the block timestamp
           await expect(tx)
               .to.emit(staking, "Staked")
               .withArgs(addr1.address, stakeAmount, (block as any).timestamp);
         });             
+    });
+
+    describe("Unstaking", function () {
+        // Test to ensure withdraw reverts if the withdraw amount exceeds the staked amount
+        it("should revert withdraw because amount cannot be greater than the staked amount", async function () {
+          const { staking, addr1 } = await loadFixture(deployStakingContract);
+          const stakeAmount = ethers.parseEther("1");
+          const extraAmount = ethers.parseEther("2");
+          await staking.connect(addr1).stake({ value: stakeAmount });
+
+          // Attempt to withdraw more than the staked amount
+          await expect(staking.connect(addr1).withdraw(stakeAmount + extraAmount))
+            .to.be.revertedWith("Cannot withdraw more than the staked amount");
+        });
+        // Test to ensure tokens can be unstaked successfully
+        it ("should unstake tokens", async function () {
+          const { staking, addr1 } = await loadFixture(deployStakingContract);
+          const stakeAmount = ethers.parseEther("1");
+          await staking.connect(addr1).stake({ value: stakeAmount });
+
+          // Unstake the same amount as staked
+          await expect(staking.connect(addr1).withdraw(stakeAmount))
+            .to.not.be.reverted;
+          expect(await staking.getUserBalance(addr1.address)).to.equal(0);
+        });
+        // Test to ensure sMATIC tokens are burned upon withdrawal
+        it ("should burn sMATIC when user withdraw MATIC", async function () {
+          const { staking, addr1 } = await loadFixture(deployStakingContract);
+          const stakeAmount = ethers.parseEther("1");
+          await staking.connect(addr1).stake({ value: stakeAmount });
+
+          await staking.connect(addr1).withdraw(stakeAmount);
+
+          // The sMATIC balance of the user should be zero after withdrawal
+          expect(await staking.balanceOf(addr1.address)).to.equal(0);
+        });
+        // Test to ensure the Withdrawn event is emitted with correct arguments, including a timestamp
+        it ("should emit Withdrawn event with timestamp", async function () {
+          const { staking, addr1 } = await loadFixture(deployStakingContract);
+          const stakeAmount = ethers.parseEther("1");
+          await staking.connect(addr1).stake({ value: stakeAmount });
+          const tx = await staking.connect(addr1).withdraw(stakeAmount);
+          
+          await tx.wait();
+          const block = await ethers.provider.getBlock(tx.blockNumber);
+
+          // Expect the Withdrawn event to be emitted with the correct address, amount, and block timestamp
+          await expect(tx)
+            .to.emit(staking, "Withdrawn")
+            .withArgs(addr1.address, stakeAmount, (block as any).timestamp);
+        });
     });
 });
