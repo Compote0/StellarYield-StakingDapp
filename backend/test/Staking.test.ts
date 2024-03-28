@@ -136,6 +136,8 @@ describe("Staking Tests", function () {
           const stakeAmount = ethers.parseEther("1");
           await staking.connect(addr1).stake({ value: stakeAmount });
 
+          await ethers.provider.send("evm_increaseTime", [9 * 24 * 60 * 60 + 1]); // 9 days + 1 second
+          await ethers.provider.send('evm_mine', []);
           // Unstake the same amount as staked
           await expect(staking.connect(addr1).withdraw(stakeAmount))
             .to.not.be.reverted;
@@ -147,6 +149,9 @@ describe("Staking Tests", function () {
           const stakeAmount = ethers.parseEther("1");
           await staking.connect(addr1).stake({ value: stakeAmount });
 
+          await ethers.provider.send("evm_increaseTime", [9 * 24 * 60 * 60 + 1]); // 9 days + 1 second
+          await ethers.provider.send('evm_mine', []);
+
           await staking.connect(addr1).withdraw(stakeAmount);
 
           // The sMATIC balance of the user should be zero after withdrawal
@@ -157,6 +162,10 @@ describe("Staking Tests", function () {
           const { staking, addr1 } = await loadFixture(deployStakingContract);
           const stakeAmount = ethers.parseEther("1");
           await staking.connect(addr1).stake({ value: stakeAmount });
+
+          await ethers.provider.send("evm_increaseTime", [9 * 24 * 60 * 60 + 1]); // 9 days + 1 second
+          await ethers.provider.send('evm_mine', []);
+          
           const tx = await staking.connect(addr1).withdraw(stakeAmount);
           
           await tx.wait();
@@ -168,4 +177,105 @@ describe("Staking Tests", function () {
             .withArgs(addr1.address, stakeAmount, (block as any).timestamp);
         });
     });
+
+    describe("Claim", function () {
+        it("should revert because there's no staked MATIC to claim rewards from", async function () {
+          const { staking, addr1, addr2 } = await loadFixture(deployStakingContract);
+          await expect(staking.connect(addr1).claim()).to.be.revertedWith("No staked MATIC to claim rewards from");
+        });
+        it("should revert because can only claim once a week", async function () {
+          const { staking, addr1 } = await loadFixture(deployStakingContract);
+          const stakeAmount = ethers.parseEther("1");
+          await staking.connect(addr1).stake({ value: stakeAmount });
+
+          await expect(staking.connect(addr1).claim())
+            .to.be.revertedWith("Rewards can only be claimed once a week");
+          
+          await ethers.provider.send("evm_increaseTime", [7 * 24 * 60 * 60]); 
+          await ethers.provider.send("evm_mine", []);
+
+          await expect(staking.connect(addr1).claim()).not.to.be.reverted
+        });
+        it("should claim successfully with correct calculated rewards", async function () {
+          const { staking, addr1, addr2 } = await loadFixture(deployStakingContract);
+          const stakeAmount = ethers.parseEther("1");
+          await staking.connect(addr1).stake({ value: stakeAmount });
+
+          await ethers.provider.send("evm_increaseTime", [7 * 24 * 60 * 60]); 
+          await ethers.provider.send('evm_mine', []);
+
+          const balanceBefore = await staking.balanceOf(addr1.address);
+
+          await staking.connect(addr1).claim();
+
+          const balanceAfter = await staking.balanceOf(addr1.address);
+
+          expect(balanceAfter).to.be.gt(balanceBefore);
+
+        });
+        it("should emit claimed with correct values", async function () {
+          const { staking, addr1 } = await loadFixture(deployStakingContract);
+          const stakeAmount = ethers.parseEther("1");
+          await staking.connect(addr1).stake({ value: stakeAmount });
+
+          await ethers.provider.send("evm_increaseTime", [9 * 24 * 60 * 60 + 1]);
+          await ethers.provider.send('evm_mine', []);
+
+          await expect(staking.connect(addr1).claim())
+          .to.emit(staking, 'Claimed')
+        });
+        it("should update lastClaimTime successfully after a claim", async function () {
+          const { staking, addr1, addr2 } = await loadFixture(deployStakingContract);
+
+          const stakeAmount = ethers.parseEther("1");
+
+          await staking.connect(addr1).stake({ value: stakeAmount });
+
+          await ethers.provider.send("evm_increaseTime", [7 * 24 * 60 * 60]);
+          await ethers.provider.send('evm_mine', []);
+
+          const currentTime = (await ethers.provider.getBlock('latest')as any).timestamp;
+          await staking.connect(addr1).claim();
+          
+          const lastClaimTime = await staking.lastClaimTime(addr1.address);
+          
+          expect(lastClaimTime).to.be.at.least(currentTime);
+          expect(lastClaimTime).to.be.below(currentTime + 2); 
+          
+
+        });
+    });
+
+    describe("Complete Staking Flow", function () {
+        it("should handle stake, claim rewards twice, and withdraw correctly", async function () {
+          const { staking, addr1 } = await loadFixture(deployStakingContract);
+  
+          // Étape 1: Staking
+          const stakeAmount = ethers.parseEther("100"); // 100 MATIC pour simplifier
+          await staking.connect(addr1).stake({ value: stakeAmount });
+  
+          // Vérifie que le staking s'est bien passé
+          expect(await staking.balanceOf(addr1.address)).to.equal(stakeAmount);
+  
+          // Étape 2: Première réclamation de rewards après une période
+          await ethers.provider.send("evm_increaseTime", [7 * 24 * 60 * 60]); // Avancer le temps de 1 semaine
+          await ethers.provider.send("evm_mine", []);
+          await staking.connect(addr1).claim();
+  
+          // Étape 3: Deuxième réclamation de rewards après une autre période
+          await ethers.provider.send("evm_increaseTime", [7 * 24 * 60 * 60]); // Avancer encore de 1 semaine
+          await ethers.provider.send("evm_mine", []);
+          await staking.connect(addr1).claim();
+  
+          // Stocke le solde sMATIC total après les réclamations (stake initial + rewards)
+          const totalSMATICBalance = await staking.balanceOf(addr1.address);
+          expect(totalSMATICBalance).to.be.gt(stakeAmount); // Le solde devrait être supérieur au montant initial du stake
+  
+          // Étape 4: Withdraw du solde total (stake initial + rewards)
+          await staking.connect(addr1).withdraw(totalSMATICBalance);
+  
+          // Vérifie le solde sMATIC final (devrait être 0 après withdraw)
+          expect(await staking.balanceOf(addr1.address)).to.equal(0);
+        });
+    });  
 });

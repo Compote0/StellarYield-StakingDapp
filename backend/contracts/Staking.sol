@@ -7,10 +7,16 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 contract Staking is ERC20, Ownable, ReentrancyGuard {
     uint256 public constant WEEK = 7 days;
-    // uint256 public constant MAX_APR = 500;
-    uint256 public apr;
     uint256 private totalStaked;
+    uint256 public lockPeriod = 9 days;
 
+    uint256 public apr;
+    uint256 public constant MAX_APR = 10;
+    uint256 public constant MAX_TOTAL_STAKED = 10000 ether;
+    uint256 public constant MIN_APR = 2;
+    uint256 public constant BASE_APR= 5;
+    
+    mapping(address => uint256) public lockTime;
     mapping(address => uint256) public stakedBalances;
     mapping(address => uint256) public lastClaimTime;
 
@@ -38,6 +44,10 @@ contract Staking is ERC20, Ownable, ReentrancyGuard {
         stakedBalances[msg.sender] += amount;
         totalStaked += amount; 
         lastClaimTime[msg.sender] = block.timestamp;
+        
+        lockTime[msg.sender] = block.timestamp + lockPeriod; // Set lock time
+
+        adjustAPR();
 
         emit Staked(msg.sender, amount, block.timestamp);
     }
@@ -58,9 +68,10 @@ contract Staking is ERC20, Ownable, ReentrancyGuard {
 
     function withdraw(uint256 amount) external nonReentrant {
         require(amount <= stakedBalances[msg.sender], "Cannot withdraw more than the staked amount");
+        require(block.timestamp >= lockTime[msg.sender], "Stake is currently locked");
 
         stakedBalances[msg.sender] -= amount;
-        totalStaked -= amount; 
+        totalStaked -= amount;
 
         // Burn sMATIC tokens
         _burn(msg.sender, amount);
@@ -70,6 +81,20 @@ contract Staking is ERC20, Ownable, ReentrancyGuard {
 
         emit Withdrawn(msg.sender, amount, block.timestamp);
     }
+
+    function adjustAPR() internal {
+        if (totalStaked <= MAX_TOTAL_STAKED / 2) {
+            // Si le montant total mis en jeu est inférieur à la moitié du max, augmenter l'APR
+            apr = BASE_APR + (MAX_APR - BASE_APR) * totalStaked / (MAX_TOTAL_STAKED / 2);
+        } else if (totalStaked <= MAX_TOTAL_STAKED) {
+            // Si le montant total mis en jeu est entre la moitié et le max, baisser l'APR
+            apr = BASE_APR - (BASE_APR - MIN_APR) * (totalStaked - (MAX_TOTAL_STAKED / 2)) / (MAX_TOTAL_STAKED / 2);
+        } else {
+            // Si le total mis en jeu dépasse le max, APR = MIN_APR
+            apr = MIN_APR;
+        }
+    }
+
 
     function calculateReward(uint256 userStakedAmount, uint256 timeStaked) public view returns (uint256) {
         uint256 userStakeShare = userStakedAmount * 1e18 / totalStaked; // User's share of the total stake, multiplied by 1e18
