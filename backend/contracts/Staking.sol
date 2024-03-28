@@ -5,10 +5,16 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
+// interface PriceConsumer {
+//     function getLatestPrice() external view returns (uint256);
+// }
+
 contract Staking is ERC20, Ownable, ReentrancyGuard {
     uint256 public constant WEEK = 7 days;
     uint256 private totalStaked;
     uint256 public lockPeriod = 9 days;
+
+    // PriceConsumer public priceFeed;
 
     uint256 public apr;
     uint256 public constant MAX_APR = 10;
@@ -83,18 +89,40 @@ contract Staking is ERC20, Ownable, ReentrancyGuard {
     }
 
     function adjustAPR() internal {
+        // uint256 maticPrice = priceFeed.getLatestPrice(); // get prix du MATIC en USD
+
+        // ajuster l'APR en fonction du montant total mis en jeu
         if (totalStaked <= MAX_TOTAL_STAKED / 2) {
-            // Si le montant total mis en jeu est inférieur à la moitié du max, augmenter l'APR
             apr = BASE_APR + (MAX_APR - BASE_APR) * totalStaked / (MAX_TOTAL_STAKED / 2);
         } else if (totalStaked <= MAX_TOTAL_STAKED) {
-            // Si le montant total mis en jeu est entre la moitié et le max, baisser l'APR
             apr = BASE_APR - (BASE_APR - MIN_APR) * (totalStaked - (MAX_TOTAL_STAKED / 2)) / (MAX_TOTAL_STAKED / 2);
         } else {
-            // Si le total mis en jeu dépasse le max, APR = MIN_APR
             apr = MIN_APR;
         }
-    }
 
+        // // augmenter l'APR de 1% pour chaque baisse de 100 unités du prix de MATIC en dessous d'un certain seuil, et diminuer l'APR de 1% pour chaque hausse de 100 unités au-dessus de ce seuil
+        // uint256 priceThreshold = 200; // seuil de prix défini pour ajuster l'APR
+        // uint256 priceAdjustmentFactor = 100; // facteur d'ajustement de l'APR basé sur le prix de MATIC
+        // if (maticPrice < priceThreshold) {
+        //     uint256 priceDifference = priceThreshold - maticPrice;
+        //     uint256 adjustment = (priceDifference / priceAdjustmentFactor) * 1; // calculer l'ajustement basé sur la différence de prix
+        //     apr += adjustment; // aumenter l'APR basé sur la baisse de prix
+        // } else if (maticPrice > priceThreshold) {
+        //     uint256 priceDifference = maticPrice - priceThreshold;
+        //     uint256 adjustment = (priceDifference / priceAdjustmentFactor) * 1; // calculerr l'ajustement basé sur la différence de prix
+        //     if (adjustment < apr - MIN_APR) { // l'APR ne tombe pas en dessous de MIN_APR
+        //         apr -= adjustment; // baisser l'APR basé sur la hausse de prix
+        //     } else {
+        //         apr = MIN_APR;
+        //     }
+        // }
+        // // l'APR doit rester dans les limites définies
+        // if (apr > MAX_APR) {
+        //     apr = MAX_APR;
+        // } else if (apr < MIN_APR) {
+        //     apr = MIN_APR;
+        // }
+    }
 
     function calculateReward(uint256 userStakedAmount, uint256 timeStaked) public view returns (uint256) {
         uint256 userStakeShare = userStakedAmount * 1e18 / totalStaked; // User's share of the total stake, multiplied by 1e18
