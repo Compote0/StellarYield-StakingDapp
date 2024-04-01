@@ -29,7 +29,7 @@ const Staking = () => {
       },
       onError: (error) => {
         toast({
-          title: error.message,
+          title: error.shortMessage,
           status: 'error',
           duration: 3000,
           isClosable: true,

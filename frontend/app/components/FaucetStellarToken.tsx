@@ -3,11 +3,12 @@
 import React, { useEffect, useState } from "react";
 import { Heading, Text, useToast, Button, Input, Box, Flex } from '@chakra-ui/react';
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
-import { stellarTokenAbi, stellarTokenAddress } from "../constants";
+import { stellarTokenAbi, stellarTokenAddress } from "../constants/index";
 
 const FaucetStellarToken = () => {
     const toast = useToast();
     const [amount, setAmount] = useState('');
+
 
     const {
         data: hash,
@@ -36,27 +37,13 @@ const FaucetStellarToken = () => {
         },
     });
 
-    const { isLoading, isSuccess } = useWaitForTransactionReceipt({
-        hash,
-    });
-
-    useEffect(() => {
-        if (isSuccess) {
-            toast({
-                title: 'Faucet is being registered',
-                status: 'success',
-                duration: 3000,
-                isClosable: true,
-            });
-        }
-    }, [isSuccess]);
 
     const handleFaucet = async () => {
-        if (amount.length > 0) {
+        if (amount.length > 0 && !isNaN(Number(amount))) {
             writeContract({
                 address: stellarTokenAddress,
                 abi: stellarTokenAbi,
-                functionName: "faucet",
+                functionName: 'faucet',
                 args: [amount],
             });
         } else {
@@ -68,6 +55,22 @@ const FaucetStellarToken = () => {
             });
         }
     };
+
+    const { isLoading, isSuccess } = useWaitForTransactionReceipt({
+        hash,
+    });
+
+    useEffect(() => {
+        if (isSuccess) {
+            toast({
+                title: "Deposit successful",
+                status: "success",
+                duration: 3000,
+                isClosable: true,
+            });
+        }
+    }, [isSuccess]);
+
     return (
         <Flex direction="column" gap="5" padding="5" backgroundColor="gray.50" borderRadius="lg" boxShadow="md">
             <Heading as="h3" size="lg" textAlign="center" mb="5">
