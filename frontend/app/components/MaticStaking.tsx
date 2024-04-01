@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Heading, Text, useToast, Button, Input, Box, Flex } from '@chakra-ui/react';
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
-import { stakingAbi, stakingAddress } from "../constants";
+import { stakingMaticAbi, stakingMaticAddress } from "../constants/stakingMatic";
 import { parseEther } from "viem";
 
 const Staking = () => {
@@ -47,8 +47,8 @@ const Staking = () => {
   const handleStaking = async () => {
     if (!isNaN(depositValue)) {
       writeContract({
-        address: stakingAddress,
-        abi: stakingAbi,
+        address: stakingMaticAddress,
+        abi: stakingMaticAbi,
         functionName: "stake",
         value: parseEther(depositValue),
       });
@@ -65,8 +65,8 @@ const Staking = () => {
   const handleClaim = async () => {
     if (amount.length > 0) {
       writeContract({
-        address: stakingAddress,
-        abi: stakingAbi,
+        address: stakingMaticAddress,
+        abi: stakingMaticAbi,
         functionName: "claim",
       });
     } else {
@@ -82,8 +82,8 @@ const Staking = () => {
   const handleWithdraw = async () => {
     if (amount.length > 0) {
       writeContract({
-        address: stakingAddress,
-        abi: stakingAbi,
+        address: stakingMaticAddress,
+        abi: stakingMaticAbi,
         functionName: "withdraw",
         args: [amount],
       });
@@ -96,6 +96,8 @@ const Staking = () => {
       });
     }
   };
+
+
   return (
     <Flex id='stakeMatic' height="100vh" direction="column" gap="5" padding="5" backgroundColor="#06122C" borderRadius="lg" boxShadow="md" alignItems="center" justifyContent="center">
       <Heading as="h3" size="lg" textAlign="center" mb="5" color='#cdced4'>

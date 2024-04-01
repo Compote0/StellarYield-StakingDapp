@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Heading, Text, useToast, Button, Input, Box, Flex } from '@chakra-ui/react';
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
-import { stakingAbi, stakingAddress } from "../constants";
+import { stakingStellarAbi, stakingStellarAddress } from "../constants/stakingStellar";
 import { parseEther } from "viem";
 
 const Staking = () => {
@@ -47,8 +47,8 @@ const Staking = () => {
     const handleStaking = async () => {
         if (!isNaN(depositValue)) {
             writeContract({
-                address: stakingAddress,
-                abi: stakingAbi,
+                address: stakingStellarAddress,
+                abi: stakingStellarAbi,
                 functionName: "stake",
                 value: parseEther(depositValue),
             });
@@ -65,8 +65,8 @@ const Staking = () => {
     const handleClaim = async () => {
         if (amount.length > 0) {
             writeContract({
-                address: stakingAddress,
-                abi: stakingAbi,
+                address: stakingStellarAddress,
+                abi: stakingStellarAbi,
                 functionName: "claim",
             });
         } else {
@@ -82,8 +82,8 @@ const Staking = () => {
     const handleWithdraw = async () => {
         if (amount.length > 0) {
             writeContract({
-                address: stakingAddress,
-                abi: stakingAbi,
+                address: stakingStellarAddress,
+                abi: stakingStellarAbi,
                 functionName: "withdraw",
                 args: [amount],
             });

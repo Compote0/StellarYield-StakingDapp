@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Heading, Text, useToast, Button, Input, Box, Flex } from '@chakra-ui/react';
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
-import { stellarTokenAbi, stellarTokenAddress } from "../constants/index";
+import { stellarTokenAbi, stellarTokenAddress } from "../constants/stellarToken";
 
 const FaucetStellarToken = () => {
     const toast = useToast();
