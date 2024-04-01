@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity 0.8.24;
 
 import "./AggregatorV3Interface.sol";
 
@@ -15,11 +15,11 @@ contract PriceConsumer {
      */
     function getLatestPrice() external view returns (int) {
         (
-            /*uint80 roundID*/,
-            int price,
-            /*uint startedAt*/,
-            /*uint timeStamp*/,
-            /*uint80 answeredInRound*/
+            ,
+            /*uint80 roundID*/ int price /*uint startedAt*/ /*uint timeStamp*/ /*uint80 answeredInRound*/,
+            ,
+            ,
+
         ) = _aggregator.latestRoundData();
         return price;
     }
@@ -33,7 +33,6 @@ contract PriceConsumer {
 }
 
 contract PriceConsumerMaticUSD is PriceConsumer {
-
     /**
      * Network: Polygon
      * Aggregator: MATIC/USD
@@ -41,5 +40,5 @@ contract PriceConsumerMaticUSD is PriceConsumer {
      * Address (mumbai testnet): 0xd0D5e3DB44DE05E9F294BB0a3bEEaF030DE24Ada
      * From: https://docs.chain.link/docs/matic-addresses/
      */
-    constructor() PriceConsumer(0xd0D5e3DB44DE05E9F294BB0a3bEEaF030DE24Ada) { }
+    constructor() PriceConsumer(0xd0D5e3DB44DE05E9F294BB0a3bEEaF030DE24Ada) {}
 }
