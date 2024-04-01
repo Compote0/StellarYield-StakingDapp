@@ -1,12 +1,18 @@
+'use client';;
 import BackButton from './components/BackButton';
 import React from 'react';
+import { Flex, Text } from '@chakra-ui/react';
 
 function NotFound() {
   return (
-    <div className="error">
-      <h1 className="error-title">404 - Page non trouvée</h1>
+    <Flex
+      direction='column'
+      alignItems="center"
+      justify="center"
+    >
+      <Text color='white'>404 - Page non trouvée </Text>
       <BackButton />
-    </div>
+    </Flex>
   );
 }
 

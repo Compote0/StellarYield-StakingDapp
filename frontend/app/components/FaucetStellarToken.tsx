@@ -39,21 +39,11 @@ const FaucetStellarToken = () => {
 
 
     const handleFaucet = async () => {
-        if (amount.length > 0 && !isNaN(Number(amount))) {
-            writeContract({
-                address: stellarTokenAddress,
-                abi: stellarTokenAbi,
-                functionName: 'faucet',
-                args: [amount],
-            });
-        } else {
-            toast({
-                title: 'Please enter an amount',
-                status: 'error',
-                duration: 3000,
-                isClosable: true,
-            });
-        }
+        writeContract({
+            address: stellarTokenAddress,
+            abi: stellarTokenAbi,
+            functionName: 'faucet',
+        });
     };
 
     const { isLoading, isSuccess } = useWaitForTransactionReceipt({
@@ -63,25 +53,26 @@ const FaucetStellarToken = () => {
     useEffect(() => {
         if (isSuccess) {
             toast({
-                title: "Deposit successful",
+                title: "Faucet successful",
+                description: "Tokens successfully claimed!",
                 status: "success",
                 duration: 3000,
                 isClosable: true,
             });
         }
-    }, [isSuccess]);
+    }, [isSuccess, toast]);
+
 
     return (
-        <Flex direction="column" gap="5" padding="5" backgroundColor="gray.50" borderRadius="lg" boxShadow="md">
-            <Heading as="h3" size="lg" textAlign="center" mb="5">
-                Stellar Token Faucet</Heading>
-            <Text>Enter the amount of tokens you want to receive:</Text>
-            <Input placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value)} />
+        <Flex direction="column" gap="5" padding="5" borderRadius="lg" boxShadow="md" backgroundColor="#373c56" borderColor='#828595' borderWidth="1px">
+            <Heading as="h3" size="lg" textAlign="center" mb="5" color="#cdced4">
+                Get Mumbai Test Tokens</Heading>
             <Button onClick={handleFaucet} isLoading={isPending || isLoading} isDisabled={isPending || isLoading}>
-                Get Tokens
+                Get test STELLAR
             </Button>
-            {isSuccess && <Text color="green.500">Tokens successfully claimed!</Text>}
-            {error && <Text color="red.500">{error.message}</Text>}
+            <Button as="a" href="https://www.alchemy.com/faucets/polygon-mumbai" target="_blank">Get Test MATIC</Button>
+
+            {isSuccess && <Text color="#D0CEBA">Tokens successfully claimed!</Text>}
         </Flex>
     );
 };

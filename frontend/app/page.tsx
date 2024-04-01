@@ -1,10 +1,19 @@
 'use client';
 import { useAccount } from "wagmi";
-import Staking from "./components/MaticStaking";
+import Main from "./components/Main";
 import NotConnected from "./components/NotConnected";
+import StakeMatic from "./components/MaticStaking";
+import StakeStellar from "./components/StellarStaking";
+import Lottery from "./components/Lottery";
 
 export default function Home() {
   const { isConnected } = useAccount();
 
-  return <>{isConnected ? <Staking /> : <NotConnected />}</>;
+  return (
+    <>
+      {isConnected ?
+        <><Main /><StakeStellar /><StakeMatic /><Lottery /></>
+        : <NotConnected />}
+    </>
+  );
 }

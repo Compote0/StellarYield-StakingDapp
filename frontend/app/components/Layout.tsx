@@ -1,7 +1,6 @@
 "use client";
 import Header from './Header';
 import Footer from './Footer';
-import Staking from './MaticStaking';
 import { Flex } from '@chakra-ui/react';
 import { useAccount } from "wagmi";
 import React from 'react';
@@ -11,7 +10,6 @@ interface LayoutProps {
 }
 
 const Layout = ({ children }: LayoutProps) => {
-  const { isConnected } = useAccount();
 
   return (
     <Flex

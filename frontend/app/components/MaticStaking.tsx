@@ -4,12 +4,13 @@ import React, { useEffect, useState } from "react";
 import { Heading, Text, useToast, Button, Input, Box, Flex } from '@chakra-ui/react';
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { stakingAbi, stakingAddress } from "../constants";
-import FaucetStellarToken from "./FaucetStellarToken";
+import { parseEther } from "viem";
 
 const Staking = () => {
   const toast = useToast();
   const [amount, setAmount] = useState('');
 
+  const [depositValue, setDepositValue] = useState('');
 
   const {
     data: hash,
@@ -29,7 +30,7 @@ const Staking = () => {
       },
       onError: (error) => {
         toast({
-          title: error.shortMessage,
+          title: error.message,
           status: 'error',
           duration: 3000,
           isClosable: true,
@@ -44,12 +45,12 @@ const Staking = () => {
 
   // Staking function
   const handleStaking = async () => {
-    if (amount.length > 0) {
+    if (!isNaN(depositValue)) {
       writeContract({
         address: stakingAddress,
         abi: stakingAbi,
         functionName: "stake",
-        args: [amount],
+        value: parseEther(depositValue),
       });
     } else {
       toast({
@@ -67,7 +68,6 @@ const Staking = () => {
         address: stakingAddress,
         abi: stakingAbi,
         functionName: "claim",
-        args: [amount],
       });
     } else {
       toast({
@@ -97,21 +97,20 @@ const Staking = () => {
     }
   };
   return (
-    <Flex direction="column" gap="5" padding="5" backgroundColor="gray.50" borderRadius="lg" boxShadow="md">
-      <Heading as="h3" size="lg" textAlign="center" mb="5">
+    <Flex id='stakeMatic' height="100vh" direction="column" gap="5" padding="5" backgroundColor="#06122C" borderRadius="lg" boxShadow="md" alignItems="center" justifyContent="center">
+      <Heading as="h3" size="lg" textAlign="center" mb="5" color='#cdced4'>
         Stake MATIC
       </Heading>
 
-      <FaucetStellarToken />
-
       {/* Staking */}
-      <Box backgroundColor="white" p="5" borderRadius="md" boxShadow="base">
-        <Text mb="3" fontWeight="bold">Stake Your Tokens</Text>
+      <Box width={{ base: "80%", md: "30%" }} p="5" borderRadius="md" boxShadow="base" backgroundColor="#373c56" borderColor='#828595' borderWidth="1px">
+        <Text mb="3" fontWeight="bold" color='#cdced4'>Stake Your Tokens</Text>
         <Input
           placeholder="Amount to stake"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           type="number"
+          color='#cdced4'
         />
         <Button
           colorScheme="teal"
@@ -123,8 +122,8 @@ const Staking = () => {
       </Box>
 
       {/* Claiming */}
-      <Box backgroundColor="white" p="5" borderRadius="md" boxShadow="base">
-        <Text mb="3" fontWeight="bold">Claim Rewards</Text>
+      <Box width={{ base: "80%", md: "30%" }} p="5" borderRadius="md" boxShadow="base" backgroundColor="#373c56" borderColor='#828595' borderWidth="1px">
+        <Text mb="3" fontWeight="bold" color='#cdced4'>Claim Rewards</Text>
         <Button
           colorScheme="blue"
           onClick={handleClaim}
@@ -134,13 +133,14 @@ const Staking = () => {
       </Box>
 
       {/* Withdrawing */}
-      <Box backgroundColor="white" p="5" borderRadius="md" boxShadow="base">
-        <Text mb="3" fontWeight="bold">Withdraw Tokens</Text>
+      <Box width={{ base: "80%", md: "30%" }} p="5" borderRadius="md" boxShadow="base" backgroundColor="#373c56" borderColor='#828595' borderWidth="1px">
+        <Text mb="3" fontWeight="bold" color='#cdced4'>Withdraw Tokens</Text>
         <Input
           placeholder="Amount to withdraw"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           type="number"
+          color='#cdced4'
         />
         <Button
           colorScheme="red"

@@ -1,5 +1,5 @@
 import RainbowKitAndChakraProvider from "./RainbowKitAndChakraProvider";
-import Layout from "./components/Layout.tsx";
+import Layout from "./components/Layout";
 import { ReactNode } from 'react';
 import { Inter } from "next/font/google";
 import { GlobalContextProvider } from "./context/app-context.tsx";

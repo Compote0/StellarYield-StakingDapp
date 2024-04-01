@@ -7,14 +7,15 @@ import React from 'react';
 function BackButton() {
   const router = useRouter();
   return (
-        <Flex
-        justifyContent="space-between"
-        alignItems="center"
-        p="2rem"
+    <Flex
+      justifyContent="space-between"
+      alignItems="center"
+      justify="center"
+      p="2rem"
     >
-        <Button onClick={() => router.back()} variant="outline">
-            Get Started
-        </Button>
+      <Button onClick={() => router.back()} variant="outline" bg='white'>
+        Get Started
+      </Button>
     </Flex>
   );
 }
