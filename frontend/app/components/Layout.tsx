@@ -1,7 +1,7 @@
 "use client";
-import Header from './Header.tsx';
-import Footer from './Footer.tsx';
-import Staking from './Staking.tsx';
+import Header from './Header';
+import Footer from './Footer';
+import Staking from './MaticStaking';
 import { Flex } from '@chakra-ui/react';
 import { useAccount } from "wagmi";
 import React from 'react';
@@ -21,12 +21,13 @@ const Layout = ({ children }: LayoutProps) => {
       alignItems="stretch"
     >
       <Header />
-      {isConnected && <Staking />}      
       <Flex
         grow="1"
         p="2rem"
         direction="column"
         flex="1"
+        alignItems="stretch"
+        bg="#06122C"
       >
         {children}
       </Flex>

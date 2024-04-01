@@ -5,13 +5,15 @@ import React from 'react'
 const Footer = () => {
   return (
     <Flex
-        p="2rem"
-        justifyContent="center"
-        alignItems="center"
+      p="2rem"
+      justifyContent="center"
+      alignItems="center"
+      bg="#06122C"
+
     >
-        <Text fontSize="sm" color="#D0CEBA">
-          Stellar Yield. All rights reserved. &copy; {new Date().getFullYear()}
-          </Text>
+      <Text fontSize="sm" color="#D0CEBA">
+        Stellar Yield. All rights reserved. &copy; {new Date().getFullYear()}
+      </Text>
     </Flex>
   )
 }

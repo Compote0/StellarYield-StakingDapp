@@ -1,16 +1,16 @@
 'use client';
 import { Flex, Box } from '@chakra-ui/react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import Link from 'next/link'; 
+import Link from 'next/link';
 import Image from 'next/image';
 import React from 'react';
-import Logo from '../../public/logo.png'; 
+import Logo from '../../public/logo.png';
 
 const Header = () => {
   return (
     <Flex
       as="nav"
-      align="center" 
+      align="center"
       justify="space-between"
       padding="1rem"
       bg="#06122C"
@@ -25,7 +25,7 @@ const Header = () => {
       </Box>
 
 
-        <ConnectButton />
+      <ConnectButton />
     </Flex>
   )
 }

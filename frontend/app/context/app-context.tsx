@@ -1,18 +1,18 @@
 "use client";
 import { ReactNode, createContext, useContext, useEffect, useState } from "react";
-import { contractAddress, contractAbi } from "../constants/index";
+import { stakingAddress, stakingAbi } from "../constants/index";
 import { useReadContract, useAccount } from "wagmi";
 import { parseAbiItem } from "viem";
 import { publicClient } from "../utils/client";
 
 
 type globalContextType = {
-    events: Event[];
+	events: Event[];
 	getEvents: () => void;
 };
 
 const globalContextDefaultValues: globalContextType = {
-    events: [],
+	events: [],
 	getEvents: () => { },
 };
 
@@ -28,19 +28,19 @@ export const GlobalContextProvider = ({ children }: Props) => {
 	const { address } = useAccount();
 
 
-    // Read and get events
-    const [events, setEvents] = useState<Event[]>([]);
-    const deployedBlockNumber = process.env.NEXT_PUBLIC_DEPLOYED_BLOCKNUMBER || 0;
+	// Read and get events
+	const [events, setEvents] = useState<Event[]>([]);
+	const deployedBlockNumber = process.env.NEXT_PUBLIC_DEPLOYED_BLOCKNUMBER || 0;
 	const getEvents = async () => {
 		const voterRegisteredEvent = await publicClient.getLogs({
-			address: contractAddress,
+			address: stakingAddress,
 			event: parseAbiItem(
 				"event VoterRegistered(address voterAddress)"
 			),
 			fromBlock: BigInt(deployedBlockNumber),
 			toBlock: "latest",
 		});
-    };
+	};
 
 	useEffect(() => {
 		const getAllEvents = async () => {
@@ -53,7 +53,7 @@ export const GlobalContextProvider = ({ children }: Props) => {
 
 	// create globalContext value
 	const value: globalContextType = {
-        events: events,
+		events: events,
 		getEvents: getEvents,
 	}
 
