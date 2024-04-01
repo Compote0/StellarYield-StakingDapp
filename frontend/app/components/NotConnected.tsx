@@ -1,19 +1,20 @@
-'use client';
-import { Box, Flex, Heading, Icon, Text } from "@chakra-ui/react";
-import { MdOutlineHowToVote } from "react-icons/md";
+// use client;
+import { Box, Flex, Heading, Text, Image } from "@chakra-ui/react";
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 const NotConnected = () => {
 
   return (
-    <Box textAlign="center" p="4" mt='50'>
-      <Flex direction="column" justifyContent="center" alignItems="center" >
-        <Box mb="4">
-          <Text fontSize="lg" mt="2" color="#E9D2C0">
-            Please connect your wallet to continue.
-          </Text>
-        </Box>
+    <Flex height="80vh" alignItems="center" justifyContent="center">
+      <Flex direction="column" alignItems="center" textAlign="center">
+        <Image src='/logo.png' mb="8" alt="Logo" width='40%' />
+        <Heading mb="4" color='#cdced4'>Please, connect your wallet</Heading>
+        <Text fontSize="md" mb="4" color='#828595'>
+          Connect your wallet to manage your staking positions, and use the entire dapp.
+        </Text>
+        <ConnectButton />
       </Flex>
-    </Box>
+    </Flex>
   );
 };
 

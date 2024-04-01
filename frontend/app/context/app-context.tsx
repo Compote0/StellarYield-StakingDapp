@@ -1,6 +1,6 @@
 "use client";
 import { ReactNode, createContext, useContext, useEffect, useState } from "react";
-import { stakingAddress, stakingAbi } from "../constants/index";
+import { stakingStellarAddress, stakingStellarAbi } from "../constants/stakingStellar";
 import { useReadContract, useAccount } from "wagmi";
 import { parseAbiItem } from "viem";
 import { publicClient } from "../utils/client";
@@ -33,7 +33,7 @@ export const GlobalContextProvider = ({ children }: Props) => {
 	const deployedBlockNumber = process.env.NEXT_PUBLIC_DEPLOYED_BLOCKNUMBER || 0;
 	const getEvents = async () => {
 		const voterRegisteredEvent = await publicClient.getLogs({
-			address: stakingAddress,
+			address: stakingStellarAddress,
 			event: parseAbiItem(
 				"event VoterRegistered(address voterAddress)"
 			),
