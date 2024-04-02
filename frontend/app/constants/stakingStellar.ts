@@ -2,16 +2,44 @@ import { getAddress } from "viem";
 
 export const stakingStellarAddress = getAddress(process.env.NEXT_PUBLIC_STAKING_STELLAR_ADDRESS as string) || undefined;
 export const stakingStellarAbi = [
+
     {
         "inputs": [
             {
                 "internalType": "address",
-                "name": "stellarTokenAddress",
+                "name": "_stakingToken",
                 "type": "address"
             }
         ],
         "stateMutability": "nonpayable",
         "type": "constructor"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "target",
+                "type": "address"
+            }
+        ],
+        "name": "AddressEmptyCode",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            }
+        ],
+        "name": "AddressInsufficientBalance",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "FailedInnerCall",
+        "type": "error"
     },
     {
         "inputs": [
@@ -33,6 +61,22 @@ export const stakingStellarAbi = [
             }
         ],
         "name": "OwnableUnauthorizedAccount",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "ReentrancyGuardReentrantCall",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "token",
+                "type": "address"
+            }
+        ],
+        "name": "SafeERC20FailedOperation",
         "type": "error"
     },
     {
@@ -58,19 +102,13 @@ export const stakingStellarAbi = [
         "anonymous": false,
         "inputs": [
             {
-                "indexed": true,
-                "internalType": "address",
-                "name": "staker",
-                "type": "address"
-            },
-            {
                 "indexed": false,
                 "internalType": "uint256",
-                "name": "amount",
+                "name": "reward",
                 "type": "uint256"
             }
         ],
-        "name": "TokensStaked",
+        "name": "RewardAdded",
         "type": "event"
     },
     {
@@ -79,7 +117,39 @@ export const stakingStellarAbi = [
             {
                 "indexed": true,
                 "internalType": "address",
-                "name": "staker",
+                "name": "user",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "reward",
+                "type": "uint256"
+            }
+        ],
+        "name": "RewardPaid",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "newDuration",
+                "type": "uint256"
+            }
+        ],
+        "name": "RewardsDurationUpdated",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "user",
                 "type": "address"
             },
             {
@@ -87,26 +157,72 @@ export const stakingStellarAbi = [
                 "internalType": "uint256",
                 "name": "amount",
                 "type": "uint256"
+            }
+        ],
+        "name": "Staked",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "user",
+                "type": "address"
             },
             {
                 "indexed": false,
                 "internalType": "uint256",
-                "name": "rewards",
+                "name": "amount",
                 "type": "uint256"
             }
         ],
-        "name": "TokensUnstaked",
+        "name": "Withdrawn",
         "type": "event"
     },
     {
         "inputs": [
             {
                 "internalType": "address",
-                "name": "stakerAddress",
+                "name": "account",
                 "type": "address"
             }
         ],
-        "name": "calculateRewards",
+        "name": "earned",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getReward",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "lastTimeRewardApplicable",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "lastUpdateTime",
         "outputs": [
             {
                 "internalType": "uint256",
@@ -120,37 +236,14 @@ export const stakingStellarAbi = [
     {
         "inputs": [
             {
-                "internalType": "address",
-                "name": "stakerAddress",
-                "type": "address"
+                "internalType": "uint256",
+                "name": "reward",
+                "type": "uint256"
             }
         ],
-        "name": "getStakerInfo",
-        "outputs": [
-            {
-                "components": [
-                    {
-                        "internalType": "uint256",
-                        "name": "startTime",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "stakedTokens",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "bool",
-                        "name": "isCurrentlyStaking",
-                        "type": "bool"
-                    }
-                ],
-                "internalType": "struct StakingStellar.StakerInfo",
-                "name": "",
-                "type": "tuple"
-            }
-        ],
-        "stateMutability": "view",
+        "name": "notifyRewardAmount",
+        "outputs": [],
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
@@ -168,7 +261,104 @@ export const stakingStellarAbi = [
     },
     {
         "inputs": [],
+        "name": "periodFinish",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
         "name": "renounceOwnership",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "rewardPerToken",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "rewardPerTokenStored",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "rewardRate",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "rewards",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "rewardsDuration",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_rewardsDuration",
+                "type": "uint256"
+            }
+        ],
+        "name": "setRewardsDuration",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -187,11 +377,30 @@ export const stakingStellarAbi = [
         "type": "function"
     },
     {
-        "inputs": [],
-        "name": "stakingTokenAddress",
-        "outputs": [
+        "inputs": [
             {
                 "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "stakedTokens",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "stellarToken",
+        "outputs": [
+            {
+                "internalType": "contract IERC20",
                 "name": "",
                 "type": "address"
             }
@@ -226,7 +435,32 @@ export const stakingStellarAbi = [
         "type": "function"
     },
     {
-        "inputs": [],
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "userRewardPerTokenPaid",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
         "name": "withdraw",
         "outputs": [],
         "stateMutability": "nonpayable",

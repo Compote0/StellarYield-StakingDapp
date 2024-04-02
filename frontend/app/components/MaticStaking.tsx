@@ -99,60 +99,72 @@ const Staking = () => {
 
 
   return (
-    <Flex id='stakeMatic' height="100vh" direction="column" gap="5" padding="5" backgroundColor="#06122C" borderRadius="lg" boxShadow="md" alignItems="center" justifyContent="center">
-      <Heading as="h3" size="lg" textAlign="center" mb="5" color='#cdced4'>
-        Stake MATIC
-      </Heading>
+    <Flex
+      id='stakeMatic'
+      height="100vh"
+      direction="column"
+      alignItems="center"
+      justifyContent="center"
+      backgroundColor="#06122C"
+    >
+      <Text fontSize="5xl" color="white">
+        Stake MATIC - Coming Soon
+      </Text>
+    </Flex >
+    // <Flex id='stakeMatic' height="100vh" direction="column" gap="5" padding="5" backgroundColor="#06122C" borderRadius="lg" boxShadow="md" alignItems="center" justifyContent="center">
+    //   <Heading as="h3" size="lg" textAlign="center" mb="5" color='#e6e6e9'>
+    //     Stake MATIC
+    //   </Heading>
 
-      {/* Staking */}
-      <Box width={{ base: "80%", md: "30%" }} p="5" borderRadius="md" boxShadow="base" backgroundColor="#373c56" borderColor='#828595' borderWidth="1px">
-        <Text mb="3" fontWeight="bold" color='#cdced4'>Stake Your Tokens</Text>
-        <Input
-          placeholder="Amount to stake"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          type="number"
-          color='#cdced4'
-        />
-        <Button
-          colorScheme="teal"
-          mt="3"
-          onClick={handleStaking}
-        >
-          Stake
-        </Button>
-      </Box>
+    //   {/* Staking */}
+    //   <Box width={{ base: "80%", md: "30%" }} p="5" borderRadius="md" boxShadow="base" backgroundColor="#373c56" borderColor='#828595' borderWidth="1px">
+    //     <Text mb="3" fontWeight="bold" color='#cdced4'>Stake Your Tokens</Text>
+    //     <Input
+    //       placeholder="Amount to stake"
+    //       value={amount}
+    //       onChange={(e) => setAmount(e.target.value)}
+    //       type="number"
+    //       color='#cdced4'
+    //     />
+    //     <Button
+    //       colorScheme="teal"
+    //       mt="3"
+    //       onClick={handleStaking}
+    //     >
+    //       Stake
+    //     </Button>
+    //   </Box>
 
-      {/* Claiming */}
-      <Box width={{ base: "80%", md: "30%" }} p="5" borderRadius="md" boxShadow="base" backgroundColor="#373c56" borderColor='#828595' borderWidth="1px">
-        <Text mb="3" fontWeight="bold" color='#cdced4'>Claim Rewards</Text>
-        <Button
-          colorScheme="blue"
-          onClick={handleClaim}
-        >
-          Claim
-        </Button>
-      </Box>
+    //   {/* Claiming */}
+    //   <Box width={{ base: "80%", md: "30%" }} p="5" borderRadius="md" boxShadow="base" backgroundColor="#373c56" borderColor='#828595' borderWidth="1px">
+    //     <Text mb="3" fontWeight="bold" color='#cdced4'>Claim Rewards</Text>
+    //     <Button
+    //       colorScheme="blue"
+    //       onClick={handleClaim}
+    //     >
+    //       Claim
+    //     </Button>
+    //   </Box>
 
-      {/* Withdrawing */}
-      <Box width={{ base: "80%", md: "30%" }} p="5" borderRadius="md" boxShadow="base" backgroundColor="#373c56" borderColor='#828595' borderWidth="1px">
-        <Text mb="3" fontWeight="bold" color='#cdced4'>Withdraw Tokens</Text>
-        <Input
-          placeholder="Amount to withdraw"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          type="number"
-          color='#cdced4'
-        />
-        <Button
-          colorScheme="red"
-          mt="3"
-          onClick={handleWithdraw}
-        >
-          Withdraw
-        </Button>
-      </Box>
-    </Flex>
+    //   {/* Withdrawing */}
+    //   <Box width={{ base: "80%", md: "30%" }} p="5" borderRadius="md" boxShadow="base" backgroundColor="#373c56" borderColor='#828595' borderWidth="1px">
+    //     <Text mb="3" fontWeight="bold" color='#cdced4'>Withdraw Tokens</Text>
+    //     <Input
+    //       placeholder="Amount to withdraw"
+    //       value={amount}
+    //       onChange={(e) => setAmount(e.target.value)}
+    //       type="number"
+    //       color='#cdced4'
+    //     />
+    //     <Button
+    //       colorScheme="red"
+    //       mt="3"
+    //       onClick={handleWithdraw}
+    //     >
+    //       Withdraw
+    //     </Button>
+    //   </Box>
+    // </Flex>
   );
 };
 

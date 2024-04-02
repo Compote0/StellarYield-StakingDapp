@@ -39,7 +39,7 @@ const Header = () => {
       justify="space-between"
       padding="1rem"
       bg="#06122C"
-      color="white"
+      color="e6e6e9"
       wrap="wrap"
       position="fixed"
       top={isVisible ? "0" : "-70px"}
@@ -58,7 +58,7 @@ const Header = () => {
       <Box display="flex" gap="20px">
         <Link
           position="relative"
-          color='#D0CEBA'
+          color='#e6e6e9'
           onClick={() => scrollToSection('main')}
           _hover={{
             _after: {
@@ -80,7 +80,7 @@ const Header = () => {
             left: "0",
             width: "100%",
             height: "2px",
-            backgroundColor: "#D0CEBA",
+            backgroundColor: "#e6e6e9",
             transform: "scaleX(0)",
             transformOrigin: "left",
             transition: "transform .3s ease-in-out",
@@ -96,7 +96,7 @@ const Header = () => {
 
         <Link
           position="relative"
-          color='#D0CEBA'
+          color='#e6e6e9'
           onClick={() => scrollToSection('stakeStellar')}
           _hover={{
             _after: {
@@ -118,7 +118,7 @@ const Header = () => {
             left: "0",
             width: "100%",
             height: "2px",
-            backgroundColor: "#D0CEBA",
+            backgroundColor: "#e6e6e9",
             transform: "scaleX(0)",
             transformOrigin: "left",
             transition: "transform .3s ease-in-out",
@@ -133,7 +133,7 @@ const Header = () => {
         </Link>
         <Link
           position="relative"
-          color='#D0CEBA'
+          color='#e6e6e9'
           onClick={() => scrollToSection('stakeMatic')}
           _hover={{
             _after: {
@@ -143,7 +143,7 @@ const Header = () => {
               left: "0",
               width: "100%",
               height: "2px",
-              backgroundColor: "#D0CEBA",
+              backgroundColor: "#e6e6e9",
               transform: "scaleX(1)",
               transition: "transform .3s ease-in-out",
             },
@@ -155,7 +155,7 @@ const Header = () => {
             left: "0",
             width: "100%",
             height: "2px",
-            backgroundColor: "#D0CEBA",
+            backgroundColor: "#e6e6e9",
             transform: "scaleX(0)",
             transformOrigin: "left",
             transition: "transform .3s ease-in-out",
@@ -170,7 +170,7 @@ const Header = () => {
         </Link>
         <Link
           position="relative"
-          color='#D0CEBA'
+          color='#e6e6e9'
           onClick={() => scrollToSection('lottery')}
           _hover={{
             _after: {
@@ -180,7 +180,7 @@ const Header = () => {
               left: "0",
               width: "100%",
               height: "2px",
-              backgroundColor: "#D0CEBA",
+              backgroundColor: "#e6e6e9",
               transform: "scaleX(1)",
               transition: "transform .3s ease-in-out",
             },
@@ -192,7 +192,7 @@ const Header = () => {
             left: "0",
             width: "100%",
             height: "2px",
-            backgroundColor: "#D0CEBA",
+            backgroundColor: "#e6e6e9",
             transform: "scaleX(0)",
             transformOrigin: "left",
             transition: "transform .3s ease-in-out",

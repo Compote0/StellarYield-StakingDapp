@@ -50,7 +50,7 @@ const Staking = () => {
                 address: stakingStellarAddress,
                 abi: stakingStellarAbi,
                 functionName: "stake",
-                value: parseEther(depositValue),
+                args: [amount],
             });
         } else {
             toast({

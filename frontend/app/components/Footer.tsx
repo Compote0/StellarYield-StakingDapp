@@ -11,7 +11,7 @@ const Footer = () => {
       bg="#06122C"
 
     >
-      <Text fontSize="sm" color="#D0CEBA">
+      <Text fontSize="sm" color="#e6e6e9">
         Stellar Yield. All rights reserved. &copy; {new Date().getFullYear()}
       </Text>
     </Flex>

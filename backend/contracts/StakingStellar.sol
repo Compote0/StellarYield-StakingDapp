@@ -1,85 +1,148 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./StellarToken.sol";
 
-contract StakingStellar is Ownable {
-    StellarToken public _stellarToken;
+contract StakingStellar is Ownable, ReentrancyGuard {
+    using SafeERC20 for IERC20;
+
+    IERC20 public stellarToken;
+
+    /* ::::::::::::::::::: VARIABLES ::::::::::::::::::: */
+
     uint256 public totalStakedAmount;
-    uint256 private APR = 32;
-    mapping(address => StakerInfo) private _stakers;
+    uint256 public rewardRate;
+    uint256 public periodFinish = 0;
+    uint256 public rewardsDuration = 7 days;
+    uint256 public lastUpdateTime;
+    uint256 public rewardPerTokenStored;
 
-    struct StakerInfo {
-        uint256 startTime;
-        uint256 stakedTokens;
-        bool isCurrentlyStaking;
+    mapping(address => uint256) public userRewardPerTokenPaid;
+    mapping(address => uint256) public rewards;
+    mapping(address => uint256) public stakedTokens;
+    mapping(address => uint256) public unlockTimes;
+
+    /* ::::::::::::::::::: EVENTS ::::::::::::::::::: */
+
+    event Staked(address indexed user, uint256 amount);
+    event Withdrawn(address indexed user, uint256 amount);
+    event RewardPaid(address indexed user, uint256 reward);
+    event RewardsDurationUpdated(uint256 newDuration);
+    event RewardAdded(uint256 reward);
+
+    /* ::::::::::::::::::: CONSTRUCTOR  ::::::::::::::::::: */
+
+    constructor(address _stakingToken) Ownable(msg.sender) {
+        stellarToken = IERC20(_stakingToken);
     }
 
-    event TokensStaked(address indexed staker, uint256 amount);
-    event TokensUnstaked(
-        address indexed staker,
-        uint256 amount,
-        uint256 rewards
-    );
+    /* ::::::::::::::::::: MODIFIER  ::::::::::::::::::: */
 
-    constructor() Ownable(msg.sender) {
-        _stellarToken = new StellarToken();
+    modifier updateReward(address account) {
+        rewardPerTokenStored = rewardPerToken();
+        lastUpdateTime = lastTimeRewardApplicable();
+        if (account != address(0)) {
+            rewards[account] = earned(account);
+            userRewardPerTokenPaid[account] = rewardPerTokenStored;
+        }
+        _;
     }
 
-    function stake(uint256 amount) external {
-        require(amount > 0, "Amount must be greater than 0.");
-        require(
-            _stakers[msg.sender].isCurrentlyStaking == false,
-            "Already staking. Please unstake before staking again."
-        );
+    /* ::::::::::::::::::: FUNCTIONS ::::::::::::::::::: */
 
-        _stellarToken.transferFrom(msg.sender, address(this), amount);
+    function lastTimeRewardApplicable() public view returns (uint256) {
+        return block.timestamp < periodFinish ? block.timestamp : periodFinish;
+    }
 
-        _stakers[msg.sender] = StakerInfo({
-            startTime: block.timestamp,
-            stakedTokens: amount,
-            isCurrentlyStaking: true
-        });
+    function rewardPerToken() public view returns (uint256) {
+        if (totalStakedAmount == 0) {
+            return rewardPerTokenStored;
+        }
+        return
+            rewardPerTokenStored +
+            ((rewardRate *
+                (lastTimeRewardApplicable() - lastUpdateTime) *
+                1e18) / totalStakedAmount);
+    }
 
+    function earned(address account) public view returns (uint256) {
+        return
+            ((stakedTokens[account] *
+                (rewardPerToken() - userRewardPerTokenPaid[account])) / 1e18) +
+            rewards[account];
+    }
+
+    function stake(
+        uint256 amount
+    ) external nonReentrant updateReward(msg.sender) {
+        require(amount > 0, "Amount must be greater than 0");
         totalStakedAmount += amount;
-
-        emit TokensStaked(msg.sender, amount);
+        stakedTokens[msg.sender] += amount;
+        unlockTimes[msg.sender] = block.timestamp + 1 weeks;
+        stellarToken.safeTransferFrom(msg.sender, address(this), amount);
+        emit Staked(msg.sender, amount);
     }
 
-    function withdraw() external {
-        StakerInfo storage staker = _stakers[msg.sender];
-        require(staker.isCurrentlyStaking, "No tokens to unstake.");
-
-        uint256 rewards = calculateRewards(msg.sender);
-        _stellarToken.transfer(msg.sender, staker.stakedTokens + rewards);
-
-        totalStakedAmount -= staker.stakedTokens;
-
-        emit TokensUnstaked(msg.sender, staker.stakedTokens, rewards);
-
-        delete _stakers[msg.sender];
+    function withdraw(
+        uint256 amount
+    ) external nonReentrant updateReward(msg.sender) {
+        require(amount > 0, "Cannot withdraw 0");
+        require(
+            stakedTokens[msg.sender] >= amount,
+            "Withdrawal amount exceeds balance"
+        );
+        require(
+            block.timestamp >= unlockTimes[msg.sender],
+            "Tokens are still locked"
+        );
+        totalStakedAmount -= amount;
+        stakedTokens[msg.sender] -= amount;
+        stellarToken.safeTransfer(msg.sender, amount);
+        emit Withdrawn(msg.sender, amount);
     }
 
-    function calculateRewards(
-        address stakerAddress
-    ) public view returns (uint256) {
-        StakerInfo memory staker = _stakers[stakerAddress];
-        uint256 stakingDurationInSeconds = block.timestamp - staker.startTime;
-        uint256 rewards = (staker.stakedTokens *
-            stakingDurationInSeconds *
-            APR) / (365 days * 100);
-        return rewards;
+    function getReward() external nonReentrant updateReward(msg.sender) {
+        uint256 reward = rewards[msg.sender];
+        if (reward > 0) {
+            rewards[msg.sender] = 0;
+            stellarToken.safeTransfer(msg.sender, reward);
+
+            emit RewardPaid(msg.sender, reward);
+        }
     }
 
-    // Getter functions for contract testing and interaction
-    function getStakerInfo(
-        address stakerAddress
-    ) external view returns (StakerInfo memory) {
-        return _stakers[stakerAddress];
+    function notifyRewardAmount(
+        uint256 reward
+    ) external onlyOwner updateReward(address(0)) {
+        if (block.timestamp >= periodFinish) {
+            rewardRate = reward / rewardsDuration;
+        } else {
+            uint256 remaining = periodFinish - block.timestamp;
+            uint256 leftover = remaining * rewardRate;
+            rewardRate = (reward + leftover) / rewardsDuration;
+        }
+        uint256 balance = stellarToken.balanceOf(address(this));
+        require(
+            rewardRate <= balance / rewardsDuration,
+            "Provided reward too high"
+        );
+        lastUpdateTime = block.timestamp;
+        periodFinish = block.timestamp + rewardsDuration;
+
+        emit RewardAdded(reward);
     }
 
-    function stakingTokenAddress() external view returns (address) {
-        return address(_stellarToken);
+    function setRewardsDuration(uint256 _rewardsDuration) external onlyOwner {
+        require(
+            block.timestamp > periodFinish,
+            "Previous rewards period must be complete before changing the duration for the new period"
+        );
+        rewardsDuration = _rewardsDuration;
+
+        emit RewardsDurationUpdated(rewardsDuration);
     }
 }

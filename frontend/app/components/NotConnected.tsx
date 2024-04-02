@@ -8,8 +8,8 @@ const NotConnected = () => {
     <Flex height="80vh" alignItems="center" justifyContent="center">
       <Flex direction="column" alignItems="center" textAlign="center">
         <Image src='/logo.png' mb="8" alt="Logo" width='40%' />
-        <Heading mb="4" color='#cdced4'>Please, connect your wallet</Heading>
-        <Text fontSize="md" mb="4" color='#828595'>
+        <Heading mb="4" color='#e6e6e9'>Please, connect your wallet</Heading>
+        <Text fontSize="md" mb="4" color='#b4b6bf'>
           Connect your wallet to manage your staking positions, and use the entire dapp.
         </Text>
         <ConnectButton />

@@ -8,28 +8,27 @@ async function deployStakingContract() {
 	return Staking;
 }
 
-async function deployStellarContract() {
-	console.log(`Start deploying stellar token contract...`);
+async function deployStellarStakingAndTokenContracts() {
+	console.log(`Start deploying stellar token and staking contracts...`);
 	const StellarToken = await ethers.deployContract("StellarToken");
 	await StellarToken.waitForDeployment();
+	const stellarAddress = StellarToken.target;
 	console.log(`Stellar token contract is deployed to ${StellarToken.target}`);
-	return StellarToken;
-}
 
-async function deployStakingStellarContract() {
 	console.log(`Start deploying Staking Stellar contract...`);
-	const StakingStellar = await ethers.deployContract("StakingStellar");
+	const StakingStellar = await ethers.deployContract("StakingStellar", [stellarAddress]);
 	await StakingStellar.waitForDeployment();
 	console.log(`Staking Stellar contract is deployed to ${StakingStellar.target}`);
-	return StakingStellar;
+
+
+	return { StakingStellar, StellarToken };
 }
 
 async function deployContracts() {
 	try {
 		console.log(`Deploying contracts...`);
 		const staking = await deployStakingContract();
-		const stellarToken = await deployStellarContract();
-		const stakingStellar = await deployStakingStellarContract();
+		const stellarStakingAndToken = await deployStellarStakingAndTokenContracts();
 
 	} catch (error) {
 		console.error(error);
