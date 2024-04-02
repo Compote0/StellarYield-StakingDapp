@@ -5,11 +5,12 @@ import { Heading, Text, useToast, Button, Input, Box, Flex } from '@chakra-ui/re
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { stakingStellarAbi, stakingStellarAddress } from "../constants/stakingStellar";
 import { parseEther } from "viem";
+import ApproveStellarButton from "../components/ApproveStellarButton";
 
 const Staking = () => {
     const toast = useToast();
     const [amount, setAmount] = useState('');
-
+    const [isApproved, setIsApproved] = useState(false);
     const [depositValue, setDepositValue] = useState('');
 
     const {
@@ -43,18 +44,24 @@ const Staking = () => {
         hash,
     });
 
-    // Staking function
+    const handleApprove = async () => {
+        console.log("Approving...");
+
+        setIsApproved(true);
+    };
+
     const handleStaking = async () => {
-        if (!isNaN(depositValue)) {
+        const depositValueNumeric = parseFloat(depositValue);
+        if (!isNaN(depositValueNumeric) && depositValueNumeric > 0) {
             writeContract({
                 address: stakingStellarAddress,
                 abi: stakingStellarAbi,
                 functionName: "stake",
-                args: [amount],
+                args: [parseEther(depositValue).toString()],
             });
         } else {
             toast({
-                title: 'Please enter an amount',
+                title: 'Please enter a valid amount',
                 status: 'error',
                 duration: 3000,
                 isClosable: true,
@@ -103,19 +110,26 @@ const Staking = () => {
             </Heading>
 
             {/* Staking */}
-            <Box width={{ base: "80%", md: "30%" }} p="5" borderRadius="md" boxShadow="base" backgroundColor="#373c56" borderColor='#828595' borderWidth="1px">
+            <Box width={{ base: "80%", md: "30%" }} p="5" borderRadius="md" boxShadow="base" backgroundColor="#373c56" borderColor='#828595' borderWidth="1px" gap="5">
                 <Text mb="3" fontWeight="bold" color='#cdced4'>Stake Your Tokens</Text>
                 <Input
                     placeholder="Amount to stake"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
+                    onChange={(e) => setDepositValue(e.target.value)}
                     type="number"
                     color='#cdced4'
                 />
+
+                {!isApproved && (
+                    <ApproveStellarButton
+                        onApprove={handleApprove}
+                        isApproved={isApproved}
+                    />
+                )}
                 <Button
                     colorScheme="teal"
                     mt="3"
                     onClick={handleStaking}
+                    isDisabled={!isApproved || !depositValue}
                 >
                     Stake
                 </Button>
@@ -137,7 +151,6 @@ const Staking = () => {
                 <Text mb="3" fontWeight="bold" color='#cdced4'>Withdraw Tokens</Text>
                 <Input
                     placeholder="Amount to withdraw"
-                    value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     type="number"
                     color='#cdced4'

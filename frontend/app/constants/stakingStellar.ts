@@ -2,7 +2,6 @@ import { getAddress } from "viem";
 
 export const stakingStellarAddress = getAddress(process.env.NEXT_PUBLIC_STAKING_STELLAR_ADDRESS as string) || undefined;
 export const stakingStellarAbi = [
-
     {
         "inputs": [
             {
@@ -432,6 +431,25 @@ export const stakingStellarAbi = [
         "name": "transferOwnership",
         "outputs": [],
         "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "unlockTimes",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
         "type": "function"
     },
     {
