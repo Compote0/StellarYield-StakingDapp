@@ -5,13 +5,15 @@ import { Heading, Text, useToast, Button, Input, Box, Flex } from '@chakra-ui/re
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { stakingStellarAbi, stakingStellarAddress } from "../constants/stakingStellar";
 import { parseEther } from "viem";
-import ApproveStellarButton from "../components/ApproveStellarButton";
+import ApproveStellarButton from "./ApproveStellarButton";
+import Events from "./Events";
+import { useGlobalContext } from "../context/app-context";
 
-const Staking = () => {
+const StellarStaking = () => {
     const toast = useToast();
     const [amount, setAmount] = useState('');
-    const [isApproved, setIsApproved] = useState(false);
     const [depositValue, setDepositValue] = useState('');
+    const { isApproved } = useGlobalContext();
 
     const {
         data: hash,
@@ -119,17 +121,12 @@ const Staking = () => {
                     color='#cdced4'
                 />
 
-                {!isApproved && (
-                    <ApproveStellarButton
-                        onApprove={handleApprove}
-                        isApproved={isApproved}
-                    />
-                )}
+                {!isApproved && <ApproveStellarButton />}
+
                 <Button
                     colorScheme="teal"
                     mt="3"
                     onClick={handleStaking}
-                    isDisabled={!isApproved || !depositValue}
                 >
                     Stake
                 </Button>
@@ -163,8 +160,9 @@ const Staking = () => {
                     Withdraw
                 </Button>
             </Box>
-        </Flex>
+            <Events />
+        </Flex >
     );
 };
 
-export default Staking
+export default StellarStaking
