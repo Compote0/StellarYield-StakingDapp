@@ -5,6 +5,7 @@ import { useReadContract, useAccount } from "wagmi";
 import { parseAbiItem } from "viem";
 import { publicClient } from "../utils/client";
 import { Event } from "../types/Event";
+import { User } from "../types/User";
 import { shortenAddress } from "../utils/shortenAddress";
 import mockEvents from "../utils/mockEvents";
 
@@ -13,6 +14,7 @@ type globalContextType = {
 	getEvents: () => void;
 	isApproved: boolean;
 	approveToken: (approvalStatus: boolean) => void;
+	userDetails: User | null;
 };
 
 const globalContextDefaultValues: globalContextType = {
@@ -20,6 +22,7 @@ const globalContextDefaultValues: globalContextType = {
 	getEvents: () => { },
 	isApproved: false,
 	approveToken: () => { },
+	userDetails: null,
 };
 
 const GlobalContext = createContext<globalContextType>(globalContextDefaultValues);
@@ -32,17 +35,27 @@ type Props = {
 
 export const GlobalContextProvider = ({ children }: Props) => {
 	const [isApproved, setIsApproved] = useState(false);
-
-	const approveToken = (approvalStatus: boolean) => {
-		setIsApproved(approvalStatus);
-	};
-
-
 	const { address } = useAccount();
 
 	const [events, setEvents] = useState<Event[]>(mockEvents);
 	const deployedBlockNumber = process.env.NEXT_PUBLIC_DEPLOYED_BLOCKNUMBER || 0;
 
+	// Approve the token
+	const approveToken = (approvalStatus: boolean) => {
+		setIsApproved(approvalStatus);
+	};
+
+	// Get the user details
+	const { data: userDetails, refetch: refetchUserDetails } = useReadContract<User>({
+		address: stakingStellarAddress,
+		abi: stakingStellarAbi,
+		functionName: "getUserDetails",
+		args: [address],
+		watch: true,
+	});
+
+
+	// Read and get the events
 	const getEvents = async () => {
 		const stakedEvent = await publicClient.getLogs({
 			address: stakingStellarAddress,
@@ -99,9 +112,12 @@ export const GlobalContextProvider = ({ children }: Props) => {
 	};
 
 	useEffect(() => {
-		if (address !== undefined) {
-			getEvents();
-		}
+		const getAllEvents = async () => {
+			if (address !== undefined) {
+				await getEvents();
+			}
+		};
+		getAllEvents();
 	}, [address]);
 
 	const value = {
@@ -109,6 +125,7 @@ export const GlobalContextProvider = ({ children }: Props) => {
 		getEvents,
 		isApproved,
 		approveToken,
+		userDetails,
 	};
 
 	return <GlobalContext.Provider value={value}>{children}</GlobalContext.Provider>;

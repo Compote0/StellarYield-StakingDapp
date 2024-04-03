@@ -1,4 +1,5 @@
 export type User = {
-    balance: number;
-
-}
+    stakedAmount: number;
+    pendingRewards: number;
+    unlockTime: number;
+};

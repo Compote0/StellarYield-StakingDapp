@@ -42,16 +42,6 @@ const StellarStaking = () => {
         },
     });
 
-    const { isLoading, isSuccess } = useWaitForTransactionReceipt({
-        hash,
-    });
-
-    const handleApprove = async () => {
-        console.log("Approving...");
-
-        setIsApproved(true);
-    };
-
     const handleStaking = async () => {
         const depositValueNumeric = parseFloat(depositValue);
         if (!isNaN(depositValueNumeric) && depositValueNumeric > 0) {
@@ -72,20 +62,11 @@ const StellarStaking = () => {
     };
 
     const handleClaim = async () => {
-        if (amount.length > 0) {
-            writeContract({
-                address: stakingStellarAddress,
-                abi: stakingStellarAbi,
-                functionName: "claim",
-            });
-        } else {
-            toast({
-                title: 'Please enter an amount',
-                status: 'error',
-                duration: 3000,
-                isClosable: true,
-            });
-        }
+        writeContract({
+            address: stakingStellarAddress,
+            abi: stakingStellarAbi,
+            functionName: "getReward",
+        });
     };
 
     const handleWithdraw = async () => {
@@ -105,6 +86,22 @@ const StellarStaking = () => {
             });
         }
     };
+
+    const { isLoading, isSuccess } = useWaitForTransactionReceipt({
+        hash,
+    });
+
+    useEffect(() => {
+        if (isSuccess) {
+            toast({
+                title: 'Transaction successful',
+                status: 'success',
+                duration: 3000,
+                isClosable: true,
+            });
+        }
+    }, [isSuccess]);
+
     return (
         <Flex id='stakeStellar' height="100vh" direction="column" gap="5" padding="5" backgroundColor="#06122C" borderRadius="lg" boxShadow="md" alignItems="center" justifyContent="center">
             <Heading as="h3" size="lg" textAlign="center" mb="5" color='#cdced4'>
@@ -127,6 +124,7 @@ const StellarStaking = () => {
                     colorScheme="teal"
                     mt="3"
                     onClick={handleStaking}
+                    isDisabled={!isApproved}
                 >
                     Stake
                 </Button>
