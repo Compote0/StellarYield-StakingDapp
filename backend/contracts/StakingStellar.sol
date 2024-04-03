@@ -7,6 +7,13 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./StellarToken.sol";
 
+/**
+ * @title A contract to stake your Stellar Tokens on StellarYield
+ * @author Compote0
+ * @dev This contract uses SafeERC20 for token transfers and implements reentrancy guards for security.
+ * @notice Manages the staking of Stellar Tokens, allowing users to stake, withdraw, and claim rewards.
+ */
+
 contract StakingStellar is Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
@@ -35,7 +42,11 @@ contract StakingStellar is Ownable, ReentrancyGuard {
     event RewardAdded(uint256 reward);
 
     /* ::::::::::::::::::: CONSTRUCTOR  ::::::::::::::::::: */
-
+    /**
+     * @notice Initializes the contract with a specific staking token.
+     * @dev Sets the staking token address and initializes state variables.
+     * @param _stakingToken The ERC20 token to be staked.
+     */
     constructor(address _stakingToken) Ownable(msg.sender) {
         stellarToken = IERC20(_stakingToken);
     }
@@ -54,10 +65,43 @@ contract StakingStellar is Ownable, ReentrancyGuard {
 
     /* ::::::::::::::::::: FUNCTIONS ::::::::::::::::::: */
 
+    /**
+     * @notice Get details of a user's staking information.
+     * @param user Address of the user to query.
+     * @return stakedAmount Amount of tokens the user has staked.
+     * @return pendingRewards Rewards not yet claimed by the user.
+     * @return unlockTime When the user can withdraw their staked tokens.
+     */
+    function getUserDetails(
+        address user
+    )
+        external
+        view
+        returns (
+            uint256 stakedAmount,
+            uint256 pendingRewards,
+            uint256 unlockTime
+        )
+    {
+        stakedAmount = stakedTokens[user];
+        pendingRewards = earned(user);
+        unlockTime = unlockTimes[user];
+    }
+
+    /**
+     * @notice Calculate the last timestamp reward applicable.
+     * @dev Determines the last timestamp when rewards can be applied, based on the periodFinish.
+     * @return The latest applicable timestamp for rewards.
+     */
     function lastTimeRewardApplicable() public view returns (uint256) {
         return block.timestamp < periodFinish ? block.timestamp : periodFinish;
     }
 
+    /**
+     * @notice Calculates the reward per token staked.
+     * @dev Calculation includes totalStakedAmount and the reward rate over time.
+     * @return Amount of reward per token staked.
+     */
     function rewardPerToken() public view returns (uint256) {
         if (totalStakedAmount == 0) {
             return rewardPerTokenStored;
@@ -69,6 +113,11 @@ contract StakingStellar is Ownable, ReentrancyGuard {
                 1e18) / totalStakedAmount);
     }
 
+    /**
+     * @notice Calculates the total earned rewards for an account.
+     * @param account The address of the account to calculate rewards for.
+     * @return Total rewards earned by the account.
+     */
     function earned(address account) public view returns (uint256) {
         return
             ((stakedTokens[account] *
@@ -76,6 +125,11 @@ contract StakingStellar is Ownable, ReentrancyGuard {
             rewards[account];
     }
 
+    /**
+     * @notice Allows a user to stake a specified amount of tokens.
+     * @dev Transfers tokens to the contract for staking and updates user balances.
+     * @param amount Amount of tokens the user wishes to stake.
+     */
     function stake(
         uint256 amount
     ) external nonReentrant updateReward(msg.sender) {
@@ -87,6 +141,11 @@ contract StakingStellar is Ownable, ReentrancyGuard {
         emit Staked(msg.sender, amount);
     }
 
+    /**
+     * @notice Allows a user to withdraw staked tokens after a lock period.
+     * @dev Checks if the user has enough staked tokens and if the unlock time has passed.
+     * @param amount Amount of tokens the user wishes to withdraw.
+     */
     function withdraw(
         uint256 amount
     ) external nonReentrant updateReward(msg.sender) {
@@ -105,6 +164,10 @@ contract StakingStellar is Ownable, ReentrancyGuard {
         emit Withdrawn(msg.sender, amount);
     }
 
+    /**
+     * @notice Claims all pending rewards for the caller.
+     * @dev Transfers the reward tokens to the caller, resetting their reward balance.
+     */
     function getReward() external nonReentrant updateReward(msg.sender) {
         uint256 reward = rewards[msg.sender];
         if (reward > 0) {
@@ -115,6 +178,11 @@ contract StakingStellar is Ownable, ReentrancyGuard {
         }
     }
 
+    /**
+     * @notice Notifies the contract of the reward amount provided by the owner.
+     * @dev Calculates the new reward rate based on the duration and ensures it doesn't exceed the balance.
+     * @param reward The amount of tokens to be distributed as rewards.
+     */
     function notifyRewardAmount(
         uint256 reward
     ) external onlyOwner updateReward(address(0)) {
@@ -136,6 +204,11 @@ contract StakingStellar is Ownable, ReentrancyGuard {
         emit RewardAdded(reward);
     }
 
+    /**
+     * @notice Updates the rewards duration for new periods.
+     * @dev Can only be called by the owner and after the current period has ended.
+     * @param _rewardsDuration New duration in seconds for distributing rewards.
+     */
     function setRewardsDuration(uint256 _rewardsDuration) external onlyOwner {
         require(
             block.timestamp > periodFinish,
