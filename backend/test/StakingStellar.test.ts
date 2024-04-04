@@ -18,14 +18,19 @@ describe("Staking Stellar Tests", function () {
 
         // Deploy Staking contract with Stellar Token 
         const StakingStellar = await ethers.getContractFactory("StakingStellar");
-        const stakingStellar = await StakingStellar.deploy(stellarToken);
+        const stakingStellar = await StakingStellar.deploy(stellarToken.getAddress());
         await stakingStellar.waitForDeployment();
 
         // Approve Staking contract to spend addr1 and addr2's Stellar tokens
         await stellarToken.connect(addr1).approve(stakingStellar, mintAmount);
         await stellarToken.connect(addr2).approve(stakingStellar, mintAmount);
 
-        return { owner, addr1, addr2, stellarToken, stakingStellar };
+        // Deploy Malicious contract for testing reentrancy
+        const MaliciousToken = await ethers.getContractFactory("MaliciousToken");
+        const maliciousToken = await MaliciousToken.deploy(stakingStellar.getAddress());
+        await maliciousToken.waitForDeployment();
+
+        return { owner, addr1, addr2, stellarToken, stakingStellar, maliciousToken };
     }
 
     describe("Deployment", function () {
@@ -78,7 +83,7 @@ describe("Staking Stellar Tests", function () {
             await stakingStellar.connect(addr1).stake(stakeAmount);
             const newTotalStakedAmount = await stakingStellar.totalStakedAmount();
 
-            // Vérifier que le montant total misé a été mis à jour correctement
+            // Verify amount is updated correctly
             expect(newTotalStakedAmount).to.equal(initialTotalStakedAmount + stakeAmount);
         });
 
@@ -277,18 +282,15 @@ describe("Staking Stellar Tests", function () {
             const finalBalanceAddr1 = await stellarToken.balanceOf(addr1.address);
             const finalBalanceAddr2 = await stellarToken.balanceOf(addr2.address);
 
-            // Convert BigNumber values to numbers
             const totalRewardNumber = Number(totalReward);
             const initialBalanceAddr1Number = Number(initialBalanceAddr1);
             const initialBalanceAddr2Number = Number(initialBalanceAddr2);
             const finalBalanceAddr1Number = Number(finalBalanceAddr1);
             const finalBalanceAddr2Number = Number(finalBalanceAddr2);
 
-            // Assuming rewards are proportional to stakes and ignoring transaction fees for simplicity
             expect(finalBalanceAddr1Number - initialBalanceAddr1Number).to.be.closeTo(totalRewardNumber / 3, 0.01); // Addr1 should get 1/3 of the rewards
             expect(finalBalanceAddr2Number - initialBalanceAddr2Number).to.be.closeTo((totalRewardNumber * 2) / 3, 0.01); // Addr2 should get 2/3 of the rewards
         });
-
 
         it("should emit a RewardPaid event on successful reward claim", async function () {
             const { addr1, stakingStellar } = await deployAndSetupContractsFixture();
@@ -307,13 +309,88 @@ describe("Staking Stellar Tests", function () {
                 .withArgs(addr1.address, reward);
         });
 
-        it("should revert if there are no rewards to claim", async function () { });
+    });
+
+    describe("Get Users Details", function () {
+        it("should return user stakedAmount", async function () {
+            const { stakingStellar, addr1, stellarToken } = await loadFixture(deployAndSetupContractsFixture);
+
+            const stakeAmount = ethers.parseUnits("100", 18);
+
+            await stellarToken.connect(addr1).approve(stakingStellar, stakeAmount);
+            await stakingStellar.connect(addr1).stake(stakeAmount);
+
+            const userDetails = await stakingStellar.getUserDetails(addr1.address);
+
+            expect(userDetails.stakedAmount).to.equal(stakeAmount);
+        });
+
+        it("should return user pendingRewards", async function () {
+            const { addr1, stakingStellar, stellarToken } = await deployAndSetupContractsFixture();
+
+            const stakeAmountAddr1 = ethers.parseEther("100");
+
+            await stellarToken.connect(addr1).approve(stakingStellar, stakeAmountAddr1);
+            await stakingStellar.connect(addr1).stake(stakeAmountAddr1);
+
+            await ethers.provider.send("evm_increaseTime", [86400 * 7]);
+            await ethers.provider.send("evm_mine");
+
+            const rewardAmount = ethers.parseEther("10");
+            await stakingStellar.notifyRewardAmount(rewardAmount);
+
+            await ethers.provider.send("evm_increaseTime", [86400 * 7]);
+            await ethers.provider.send("evm_mine");
+
+            const userDetails = await stakingStellar.getUserDetails(addr1.address);
+            const actualRewardAddr1 = userDetails.pendingRewards;
+
+            expect(actualRewardAddr1).to.be.closeTo(rewardAmount, ethers.parseEther("0.01"));
+        });
+
+        it("should return user unlockTime", async function () {
+            const { stakingStellar, addr1, stellarToken } = await loadFixture(deployAndSetupContractsFixture);
+
+            // Amount to be staked
+            const stakeAmount = ethers.parseUnits("100", 18);
+
+            // Approve and stake tokens
+            await stellarToken.connect(addr1).approve(stakingStellar, stakeAmount);
+            await stakingStellar.connect(addr1).stake(stakeAmount);
+
+            // Get the current block timestamp
+            const blockTimestampBeforeStaking = (await (ethers as any).provider.getBlock('latest')).timestamp;
+
+            // Get user details
+            const userDetails = await stakingStellar.getUserDetails(addr1.address);
+
+            // Calculate expected unlock time (1 week after staking)
+            const expectedUnlockTime = blockTimestampBeforeStaking + 604800; // 604800 seconds in a week
+
+            // Validate returned unlockTime
+            expect(userDetails.unlockTime).to.be.closeTo(expectedUnlockTime, 5);
+        });
     });
 
     describe("Rewards and Updates", function () {
-        it("should update reward rate correctly when notified with new reward amount", async function () { });
+        it("should update reward rate correctly when notified with new reward amount", async function () {
+            const { stakingStellar, addr1, owner, stellarToken } = await loadFixture(deployAndSetupContractsFixture);
 
-        it("should not allow non-owner to notify new reward amount", async function () { });
+            await stellarToken.connect(owner).transfer(stakingStellar, ethers.parseEther("1000"));
+
+            await stakingStellar.connect(addr1).stake(ethers.parseEther("100"));
+
+            await stakingStellar.notifyRewardAmount(ethers.parseEther("50"));
+            const initialRewardRate = await stakingStellar.rewardRate();
+
+            await ethers.provider.send("evm_increaseTime", [86400 * 3]);
+            await ethers.provider.send("evm_mine");
+
+            await stakingStellar.notifyRewardAmount(ethers.parseEther("50"));
+            const newRewardRate = await stakingStellar.rewardRate();
+
+            expect(newRewardRate).to.not.equal(initialRewardRate);
+        });
 
         it("should prevent new reward notification if the provided reward is too high", async function () { });
 
@@ -321,16 +398,119 @@ describe("Staking Stellar Tests", function () {
 
         it("should prevent rewards duration update during an active reward period", async function () { });
 
-        it("should emit RewardsDurationUpdated event on successful update", async function () { });
+        it("should revert if the previous rewards period is not completed before changing the duration for the new period", async function () {
+            const { stakingStellar } = await loadFixture(deployAndSetupContractsFixture);
+
+            const rewardAmount = ethers.parseEther("100");
+            await stakingStellar.notifyRewardAmount(rewardAmount);
+
+            const newRewardsDuration = 14 * 24 * 60 * 60; // 14 days
+
+            await expect(
+                stakingStellar.setRewardsDuration(newRewardsDuration)
+            ).to.be.revertedWith("Previous rewards period must be complete before changing the duration for the new period");
+
+            await ethers.provider.send("evm_increaseTime", [Number(rewardAmount) + 1]);
+            await ethers.provider.send("evm_mine");
+
+            await expect(stakingStellar.setRewardsDuration(newRewardsDuration))
+                .to.emit(stakingStellar, "RewardsDurationUpdated")
+                .withArgs(newRewardsDuration);
+        });
+
+        it("should emit RewardsDurationUpdated event on successful update", async function () {
+            const { stakingStellar } = await loadFixture(deployAndSetupContractsFixture);
+
+            const newRewardsDuration = 14 * 24 * 60 * 60; //14d 
+
+            await expect(stakingStellar.setRewardsDuration(newRewardsDuration))
+                .to.emit(stakingStellar, "RewardsDurationUpdated")
+                .withArgs(newRewardsDuration);
+
+            const updatedRewardsDuration = await stakingStellar.rewardsDuration();
+            expect(updatedRewardsDuration).to.equal(newRewardsDuration);
+        });
     });
 
     describe("Access Control and Ownership", function () {
-        it("should only allow the owner to notify new rewards", async function () { });
+        it("should not allow non-owner to notify new reward amount", async function () {
+            const { stakingStellar, addr1 } = await loadFixture(deployAndSetupContractsFixture);
 
-        it("should only allow the owner to update rewards duration", async function () { });
+            const rewardAmount = ethers.parseEther("100");
 
-        it("should transfer ownership successfully", async function () { });
+            await expect(
+                stakingStellar.connect(addr1).notifyRewardAmount(rewardAmount)
+            ).to.be.reverted;
+        });
+        it("should not allow non-owner to set reward duration", async function () {
+            const { stakingStellar, addr1 } = await loadFixture(deployAndSetupContractsFixture);
 
-        it("should prevent non-owners from calling restricted functions", async function () { });
+            const newRewardsDuration = 14 * 24 * 60 * 60; //14d for instance
+
+            await expect(
+                stakingStellar.connect(addr1).setRewardsDuration(newRewardsDuration)
+            ).to.be.reverted;
+        });
+
+        it("should transfer ownership successfully", async function () {
+            const { stakingStellar, owner, addr1 } = await loadFixture(deployAndSetupContractsFixture);
+
+            const initialOwner = await stakingStellar.owner();
+            expect(initialOwner).to.equal(owner.address);
+
+            await stakingStellar.transferOwnership(addr1.address);
+
+            const newOwner = await stakingStellar.owner();
+            expect(newOwner).to.equal(addr1.address);
+        });
+
+        it("should prevent non-owners from calling restricted functions", async function () {
+            const { stakingStellar, addr1 } = await loadFixture(deployAndSetupContractsFixture);
+
+            const rewardAmount = ethers.parseEther("100");
+            await expect(
+                stakingStellar.connect(addr1).notifyRewardAmount(rewardAmount)
+            ).to.be.reverted;
+
+            const newRewardsDuration = 14 * 24 * 60 * 60; // 14 days
+            await expect(
+                stakingStellar.connect(addr1).setRewardsDuration(newRewardsDuration)
+            ).to.be.reverted;
+        });
+    });
+
+    describe("Reentrency attacks", function () {
+        it("should prevent reentrancy on stake function", async function () {
+            const { stakingStellar, maliciousToken } = await loadFixture(deployAndSetupContractsFixture);
+            const [owner, attacker] = await ethers.getSigners();
+
+            await maliciousToken.connect(attacker).approve(stakingStellar, ethers.parseEther("100"));
+            await expect(
+                maliciousToken.connect(attacker).transferFrom(attacker.address, stakingStellar, ethers.parseEther("100"))
+            ).to.be.reverted;
+
+        });
+
+        it("should prevent reentrancy on withdraw function", async function () {
+            const { stakingStellar, maliciousToken } = await loadFixture(deployAndSetupContractsFixture);
+            const [owner, attacker] = await ethers.getSigners();
+
+            await maliciousToken.connect(attacker).approve(stakingStellar, ethers.parseEther("100"));
+            await expect(
+                maliciousToken.connect(attacker).transferFrom(attacker.address, stakingStellar, ethers.parseEther("100"))
+            ).to.be.reverted;
+
+        });
+
+
+        it("should prevent reentrancy on getReward function", async function () {
+            const { stakingStellar, maliciousToken } = await loadFixture(deployAndSetupContractsFixture);
+            const [owner, attacker] = await ethers.getSigners();
+
+            await maliciousToken.connect(attacker).approve(stakingStellar, ethers.parseEther("100"));
+            await expect(
+                maliciousToken.connect(attacker).transferFrom(attacker.address, stakingStellar, ethers.parseEther("100"))
+            ).to.be.reverted;
+        });
     });
 });

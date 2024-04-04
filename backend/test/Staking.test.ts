@@ -2,7 +2,7 @@ import { ethers } from "hardhat";
 import { assert, expect } from "chai";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 
-describe.skip("Staking Tests", function () {
+describe("Staking Tests", function () {
   // Fixture : function to deploy the contracts before each test
   async function deployStellarTokenContract() {
     const StellarToken = await (ethers as any).getContractFactory("StellarToken");
