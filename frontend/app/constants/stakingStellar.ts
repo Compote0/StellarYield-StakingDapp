@@ -207,6 +207,35 @@ export const stakingStellarAbi = [
         "type": "function"
     },
     {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "user",
+                "type": "address"
+            }
+        ],
+        "name": "getUserDetails",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "stakedAmount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "pendingRewards",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "unlockTime",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [],
         "name": "lastTimeRewardApplicable",
         "outputs": [

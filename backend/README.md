@@ -1,13 +1,35 @@
-# Sample Hardhat Project
+# Stellar Yield Contracts
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a Hardhat Ignition module that deploys that contract.
+Main contract is StakingStellar.sol.
+Token Stellar is StellarToken.sol.
 
-Try running some of the following tasks:
+Others contracts are experimental.
 
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat ignition deploy ./ignition/modules/Lock.ts
-```
+## TEST 
+To run the tests : 
+
+```yarn test```
+
+To run the coverage :
+
+```yarn coverage```
+
+## HARDHAT NODE
+
+To run the local node : 
+
+```yarn run node```
+
+## DEPLOY
+
+To deploy the contracts to the local node :
+
+```yarn run deploy-ll```
+
+To deploy the contracts to sepolia :
+
+```yarn run deploy-se```
+
+To deploy the contracts to mumbai :
+
+```yarn run deploy-mu```

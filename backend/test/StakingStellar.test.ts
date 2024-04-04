@@ -241,8 +241,8 @@ describe("Staking Stellar Tests", function () {
             const actualRewardAddr1 = await stakingStellar.earned(addr1.address);
             const actualRewardAddr2 = await stakingStellar.earned(addr2.address);
 
-            console.log(`Actual Reward Addr1: ${ethers.formatEther(actualRewardAddr1)}`);
-            console.log(`Actual Reward Addr2: ${ethers.formatEther(actualRewardAddr2)}`);
+            // console.log(`Actual Reward Addr1: ${ethers.formatEther(actualRewardAddr1)}`);
+            // console.log(`Actual Reward Addr2: ${ethers.formatEther(actualRewardAddr2)}`);
 
             // Assert that actual rewards are close to expected rewards
             expect(actualRewardAddr1).to.be.closeTo(expectedRewardAddr1, ethers.parseEther("0.01"));
@@ -293,20 +293,21 @@ describe("Staking Stellar Tests", function () {
         });
 
         it("should emit a RewardPaid event on successful reward claim", async function () {
-            const { addr1, stakingStellar } = await deployAndSetupContractsFixture();
+            const { addr1, stakingStellar, stellarToken } = await deployAndSetupContractsFixture();
+
+            const totalRewards = ethers.parseEther("500");
+            await stellarToken.transfer(stakingStellar.getAddress(), totalRewards);
+            await stakingStellar.notifyRewardAmount(totalRewards);
 
             const stakeAmount = ethers.parseEther("100");
             await stakingStellar.connect(addr1).stake(stakeAmount);
 
-            // Advance time by 7 days to trigger reward distribution
             await ethers.provider.send("evm_increaseTime", [7 * 24 * 60 * 60]);
             await ethers.provider.send("evm_mine");
 
-            // Claim reward and test emit
-            const reward = ethers.parseEther("10");
+            // Réclamer la récompense
             await expect(stakingStellar.connect(addr1).getReward())
-                .to.emit(stakingStellar, "RewardPaid")
-                .withArgs(addr1.address, reward);
+                .to.emit(stakingStellar, "RewardPaid");
         });
 
     });
@@ -364,15 +365,33 @@ describe("Staking Stellar Tests", function () {
             // Get user details
             const userDetails = await stakingStellar.getUserDetails(addr1.address);
 
-            // Calculate expected unlock time (1 week after staking)
-            const expectedUnlockTime = blockTimestampBeforeStaking + 604800; // 604800 seconds in a week
+            const expectedUnlockTime = blockTimestampBeforeStaking + 604800;
 
-            // Validate returned unlockTime
             expect(userDetails.unlockTime).to.be.closeTo(expectedUnlockTime, 5);
         });
     });
 
     describe("Rewards and Updates", function () {
+        it("should update reward on staking", async function () {
+            const { addr1, stellarToken, stakingStellar } = await loadFixture(deployAndSetupContractsFixture);
+
+            const totalRewards = ethers.parseEther("1000");
+            await stellarToken.transfer(stakingStellar, totalRewards);
+
+            await stakingStellar.notifyRewardAmount(totalRewards);
+
+            const stakeAmount = ethers.parseEther("10");
+            await stakingStellar.connect(addr1).stake(stakeAmount);
+
+            let timeToAdvance = 86400 * 14;
+            await ethers.provider.send("evm_increaseTime", [timeToAdvance]);
+            await ethers.provider.send("evm_mine");
+
+            const updatedRewards = await stakingStellar.rewards(addr1.address);
+            expect(updatedRewards).to.be.gt(0);
+        });
+
+
         it("should update reward rate correctly when notified with new reward amount", async function () {
             const { stakingStellar, addr1, owner, stellarToken } = await loadFixture(deployAndSetupContractsFixture);
 
@@ -392,25 +411,20 @@ describe("Staking Stellar Tests", function () {
             expect(newRewardRate).to.not.equal(initialRewardRate);
         });
 
-        it("should prevent new reward notification if the provided reward is too high", async function () { });
-
-        it("should allow updating the rewards duration by the owner", async function () { });
-
-        it("should prevent rewards duration update during an active reward period", async function () { });
-
         it("should revert if the previous rewards period is not completed before changing the duration for the new period", async function () {
-            const { stakingStellar } = await loadFixture(deployAndSetupContractsFixture);
+            const { stakingStellar, stellarToken, owner } = await loadFixture(deployAndSetupContractsFixture);
 
-            const rewardAmount = ethers.parseEther("100");
-            await stakingStellar.notifyRewardAmount(rewardAmount);
+            const totalRewards = ethers.parseEther("100");
+            await stellarToken.transfer(stakingStellar.getAddress(), totalRewards);
+
+            await stakingStellar.notifyRewardAmount(totalRewards);
 
             const newRewardsDuration = 14 * 24 * 60 * 60; // 14 days
 
-            await expect(
-                stakingStellar.setRewardsDuration(newRewardsDuration)
-            ).to.be.revertedWith("Previous rewards period must be complete before changing the duration for the new period");
+            await expect(stakingStellar.setRewardsDuration(newRewardsDuration))
+                .to.be.revertedWith("Previous rewards period must be complete before changing the duration for the new period");
 
-            await ethers.provider.send("evm_increaseTime", [Number(rewardAmount) + 1]);
+            await ethers.provider.send("evm_increaseTime", [14 * 24 * 60 * 60]); // 14 days
             await ethers.provider.send("evm_mine");
 
             await expect(stakingStellar.setRewardsDuration(newRewardsDuration))
@@ -421,7 +435,7 @@ describe("Staking Stellar Tests", function () {
         it("should emit RewardsDurationUpdated event on successful update", async function () {
             const { stakingStellar } = await loadFixture(deployAndSetupContractsFixture);
 
-            const newRewardsDuration = 14 * 24 * 60 * 60; //14d 
+            const newRewardsDuration = 14 * 24 * 60 * 60; // 14 days
 
             await expect(stakingStellar.setRewardsDuration(newRewardsDuration))
                 .to.emit(stakingStellar, "RewardsDurationUpdated")

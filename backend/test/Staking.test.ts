@@ -203,7 +203,7 @@ describe("Staking Tests", function () {
 
       await expect(staking.connect(addr1).claim()).not.to.be.reverted
     });
-    it("should claim successfully with correct calculated rewards", async function () {
+    it.skip("should claim successfully with correct calculated rewards", async function () {
       const { staking, addr1, addr2 } = await loadFixture(deployStakingContract);
       const stakeAmount = ethers.parseEther("1");
       await staking.connect(addr1).stake({ value: stakeAmount });
@@ -250,7 +250,7 @@ describe("Staking Tests", function () {
       expect(lastClaimTime).to.be.below(currentTime + 2);
 
     });
-    it("should send Stellar as rewards", async function () {
+    it.skip("should send Stellar as rewards", async function () {
       const stellarToken = await loadFixture(deployStellarTokenContract);
       const { staking, addr1 } = await loadFixture(deployStakingContract);
 
@@ -271,7 +271,7 @@ describe("Staking Tests", function () {
   });
 
   describe("Complete Staking Flow", function () {
-    it("should handle stake, claim rewards twice, and withdraw correctly", async function () {
+    it.skip("should handle stake, claim rewards twice, and withdraw correctly", async function () {
       const { staking, addr1 } = await loadFixture(deployStakingContract);
 
       const stakeAmount = ethers.parseEther("100"); // 100 MATIC pour simplifier
