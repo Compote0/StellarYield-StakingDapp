@@ -8,6 +8,7 @@ import { Event } from "../types/Event";
 import { User } from "../types/User";
 import { shortenAddress } from "../utils/shortenAddress";
 import mockEvents from "../utils/mockEvents";
+import { ethers } from "ethers";
 
 type globalContextType = {
 	events: Event[];
@@ -89,19 +90,19 @@ export const GlobalContextProvider = ({ children }: Props) => {
 			stakedEvent.map(event => ({
 				icon: "LockIcon",
 				title: "Staked",
-				message: `Address ${shortenAddress(event.args.user)} staked ${event.args.amount} tokens.`,
+				message: `Address ${shortenAddress(event.args.user)} staked ${ethers.formatUnits(event.args.amount, 18)} STELLAR.`,
 				blockNumber: Number(event.blockNumber),
 			})),
 			withdrawnEvent.map(event => ({
 				icon: "DownloadIcon",
 				title: "Withdrawn",
-				message: `Address ${shortenAddress(event.args.user)} withdrawn ${event.args.amount} tokens.`,
+				message: `Address ${shortenAddress(event.args.user)} withdrawn ${ethers.formatUnits(event.args.amount, 18)} STELLAR.`,
 				blockNumber: Number(event.blockNumber),
 			})),
 			rewardPaidEvent.map(event => ({
 				icon: "CheckIcon",
 				title: "Reward Paid",
-				message: `Address ${shortenAddress(event.args.user)} received a reward of ${event.args.reward} tokens.`,
+				message: `Address ${shortenAddress(event.args.user)} received a reward of ${ethers.formatUnits(event.args.reward, 18)} STELLAR.`,
 				blockNumber: Number(event.blockNumber),
 			}))
 		);

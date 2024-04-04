@@ -1,8 +1,6 @@
-'use client';
-
 import React, { useEffect, useState } from "react";
 import { Heading, Text, useToast, Button, Input, Box, Flex } from '@chakra-ui/react';
-import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useWriteContract, useWaitForTransactionReceipt, useAccount, useReadContract } from 'wagmi';
 import { stakingStellarAbi, stakingStellarAddress } from "../constants/stakingStellar";
 import { parseEther } from "viem";
 import ApproveStellarButton from "./ApproveStellarButton";
@@ -13,7 +11,7 @@ const StellarStaking = () => {
     const toast = useToast();
     const [amount, setAmount] = useState('');
     const [depositValue, setDepositValue] = useState('');
-    const { isApproved } = useGlobalContext();
+    const { isApproved, getEvents } = useGlobalContext();
 
     const {
         data: hash,
@@ -92,6 +90,7 @@ const StellarStaking = () => {
     });
 
     useEffect(() => {
+        getEvents();
         if (isSuccess) {
             toast({
                 title: 'Transaction successful',
@@ -118,16 +117,19 @@ const StellarStaking = () => {
                     color='#cdced4'
                 />
 
-                {!isApproved && <ApproveStellarButton />}
+                <Box gap={2}>
+                    {!isApproved && <ApproveStellarButton />}
 
-                <Button
-                    colorScheme="teal"
-                    mt="3"
-                    onClick={handleStaking}
-                    isDisabled={!isApproved}
-                >
-                    Stake
-                </Button>
+                    <Button
+                        colorScheme="blue"
+                        variant='solid'
+                        mt="3"
+                        onClick={handleStaking}
+                        isDisabled={!isApproved}
+                    >
+                        Stake
+                    </Button>
+                </Box>
             </Box>
 
             {/* Claiming */}
@@ -136,6 +138,7 @@ const StellarStaking = () => {
                 <Button
                     colorScheme="blue"
                     onClick={handleClaim}
+                    variant='solid'
                 >
                     Claim
                 </Button>
@@ -151,7 +154,8 @@ const StellarStaking = () => {
                     color='#cdced4'
                 />
                 <Button
-                    colorScheme="red"
+                    colorScheme="blue"
+                    variant='solid'
                     mt="3"
                     onClick={handleWithdraw}
                 >

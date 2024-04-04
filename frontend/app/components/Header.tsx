@@ -3,6 +3,7 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import Image from 'next/image';
 import React, { useState, useEffect } from 'react';
 import Logo from '../../public/logo.png';
+import Title from 'material-ui/svg-icons/editor/title';
 
 const scrollToSection = (sectionId) => {
   const section = document.getElementById(sectionId);
@@ -49,11 +50,14 @@ const Header = () => {
       transition="top 0.3s"
       onMouseEnter={handleMouseEnter}
     >
-      <Box>
+      <Flex direction='row' align="center">
         <a onClick={() => scrollToSection('home')} style={{ cursor: 'pointer' }}>
           <Image src={Logo} alt="Logo" width="50" height="50" />
         </a>
-      </Box>
+        <Text fontSize="25" fontWeight="bold" color='white' p="1" pl='3'>
+          Stellar Yield
+        </Text>
+      </Flex>
 
       <Box display="flex" gap="20px">
         <Link

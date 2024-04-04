@@ -3,6 +3,8 @@ import { useToast, Button, Spinner } from '@chakra-ui/react';
 import { useWriteContract, useWaitForTransactionReceipt, useReadContract, useAccount } from 'wagmi';
 import { stellarTokenAbi, stellarTokenAddress } from "../constants/stellarToken";
 import { useGlobalContext } from "../context/app-context";
+import { IoCheckmarkCircle } from "react-icons/io5";
+
 
 const ApproveStellarButton = () => {
     const toast = useToast();
@@ -92,11 +94,12 @@ const ApproveStellarButton = () => {
 
     return (
         <Button
-            colorScheme="green"
+            colorScheme="blue"
             variant="outline"
+            rightIcon={<IoCheckmarkCircle />}
             mt="3"
             gap="2"
-            p="1rem"
+            p='5'
             onClick={handleApprove}
             isLoading={isApproveLoading}
             loadingText="Processing..."
