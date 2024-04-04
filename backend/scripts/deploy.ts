@@ -9,16 +9,22 @@ async function deployStellarTokenAndStakingContracts() {
 	await StellarToken.waitForDeployment();
 	const stellarAddress = StellarToken.target;
 	console.log(`Stellar token contract is deployed to ${StellarToken.target}`);
+	console.log(`--------------------------------------------------------------------------------------------`);
+
 
 	console.log(`Start calling faucet to mint tokens for the deployer...`);
 	await StellarToken.faucet();
 	console.log(`Tokens minted for the deployer.`);
+	console.log(`--------------------------------------------------------------------------------------------`);
+
 
 	// Deploy Staking Stellar contract
 	console.log(`Start deploying Staking Stellar contract...`);
 	const StakingStellar = await ethers.deployContract("StakingStellar", [stellarAddress]);
 	await StakingStellar.waitForDeployment();
 	console.log(`Staking Stellar contract is deployed to ${StakingStellar.target}`);
+	console.log(`--------------------------------------------------------------------------------------------`);
+
 
 	// Transfer tokens to Staking Stellar contract to cover rewards.
 	console.log(`Transferring tokens to Staking Stellar contract to cover rewards...`);
