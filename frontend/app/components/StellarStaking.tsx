@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Heading, Text, useToast, Button, Input, Box, Flex } from '@chakra-ui/react';
+import { Heading, Text, useToast, Button, Input, Box, Flex, Badge } from '@chakra-ui/react';
 import { useWriteContract, useWaitForTransactionReceipt, useAccount, useReadContract } from 'wagmi';
 import { stakingStellarAbi, stakingStellarAddress } from "../constants/stakingStellar";
 import { parseEther } from "viem";
@@ -11,7 +11,7 @@ const StellarStaking = () => {
     const toast = useToast();
     const [amount, setAmount] = useState('');
     const [depositValue, setDepositValue] = useState('');
-    const { isApproved, getEvents, fetchUserDetails, userDetails } = useGlobalContext();
+    const { isApproved, getEvents, fetchUserDetails, userDetails, userBalance, fetchUserBalance } = useGlobalContext();
 
     const {
         data: hash,
@@ -73,7 +73,7 @@ const StellarStaking = () => {
                 address: stakingStellarAddress,
                 abi: stakingStellarAbi,
                 functionName: "withdraw",
-                args: [amount],
+                args: [parseEther(amount).toString()],
             });
         } else {
             toast({
@@ -93,6 +93,7 @@ const StellarStaking = () => {
     useEffect(() => {
         getEvents();
         fetchUserDetails();
+        fetchUserBalance();
         if (isConfirmed) {
             toast({
                 title: 'Transaction successful',
@@ -111,8 +112,8 @@ const StellarStaking = () => {
 
             {/* Staking */}
             <Box width={{ base: "80%", md: "30%" }} p="5" borderRadius="md" boxShadow="base" backgroundColor="#373c56" borderColor='#828595' borderWidth="1px" gap="5">
-                <Text mb="3" fontWeight="bold" color='#cdced4'>Stake Your Tokens</Text>
-                {userDetails && <Text color='#cdced4'>{`Your staked STELLAR: ${userDetails.stakedAmount}`}</Text>}
+                <Text mb="2" fontWeight="bold" color='#cdced4'>Stake Your Tokens - Locked 9 days</Text>
+                <Text fontSize="sm" color="gray.500" mb="1">Your wallet balance: {userBalance} STELLAR</Text>
                 <Input
                     placeholder="Amount to stake"
                     onChange={(e) => setDepositValue(e.target.value)}
@@ -137,8 +138,12 @@ const StellarStaking = () => {
 
             {/* Claiming */}
             <Box width={{ base: "80%", md: "30%" }} p="5" borderRadius="md" boxShadow="base" backgroundColor="#373c56" borderColor='#828595' borderWidth="1px">
-                <Text mb="3" fontWeight="bold" color='#cdced4'>Claim Rewards</Text>
-                {userDetails && <Text color='#cdced4'>{`Your pending rewards: ${userDetails.pendingRewards}`}</Text>}
+                <Text mb="2" fontWeight="bold" color='#cdced4'>Claim Rewards</Text>
+                {userDetails && (
+                    <Text fontSize="sm" color="gray.500" mb="1">
+                        Your pending rewards: {userDetails.pendingRewards.toFixed(3)} STELLAR
+                    </Text>
+                )}
                 <Button
                     colorScheme="blue"
                     onClick={handleClaim}
@@ -150,12 +155,21 @@ const StellarStaking = () => {
 
             {/* Withdrawing */}
             <Box width={{ base: "80%", md: "30%" }} p="5" borderRadius="md" boxShadow="base" backgroundColor="#373c56" borderColor='#828595' borderWidth="1px">
-                <Text mb="3" fontWeight="bold" color='#cdced4'>Withdraw Tokens</Text>
-                {userDetails && (
-                    <Text color='#cdced4'>
-                        Unlock Time: {new Date(userDetails.unlockTime * 1000).toLocaleString()}
-                    </Text>
+                <Text mb="2" fontWeight="bold" color='#cdced4'>Withdraw Tokens</Text>
+                {userDetails && userDetails.stakedAmount > 0 && (
+                    <Flex direction="column" gap="2">
+                        <Flex gap="2" align="center">
+                            <Text fontSize="sm" color="gray.500">Unlock Time:</Text>
+                            <Badge colorScheme="purple" p="1">
+                                {new Date(userDetails.unlockTime * 1000).toLocaleString()}
+                            </Badge>
+                        </Flex>
+                        <Text fontSize="sm" color="gray.500" mb="1">
+                            Your staked STELLAR: {userDetails.stakedAmount}
+                        </Text>
+                    </Flex>
                 )}
+
                 <Input
                     placeholder="Amount to withdraw"
                     onChange={(e) => setAmount(e.target.value)}

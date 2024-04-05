@@ -36,33 +36,34 @@ const Events = () => {
             boxShadow="base"
             borderColor="#828595"
             borderWidth="1px"
-            maxH="400px"
-            minW={{ base: "80%", md: "30%" }}
+            maxH="200px"
             overflowY="auto"
+            minW={{ base: "80%", md: "30%" }}
             p="5"
         >
-            <Heading size='md' color="#cdced4" mb="4">Events Report</Heading>
+            <Heading size='md' color="#cdced4" mb="4">Last transactions</Heading>
             <Stack divider={<StackDivider borderColor="#828595" />} spacing='4'>
                 {events.map((event: Event, index: number) => (
                     <Flex key={index} align="center">
-                        <Circle size='40px' bg='teal.300' color='white' mr={4}>
+                        <Circle size='20px' bg='teal.300' color='gray' mr={2}>
                             {DisplayIcon({ iconName: event.icon })}
                         </Circle>
                         <Box flex="1">
-                            <Flex align="center">
-                                <Heading size='xs' color="#cdced4" textTransform='uppercase'>
+                            <Flex align="center" gap="2">
+                                <Heading size='2xs' color="#cdced4" textTransform='uppercase'>
                                     {event.title}
                                 </Heading>
-                                <Badge colorScheme="purple" ml="4">
+                                <Badge colorScheme="purple" fontSize="0.6em" ml="2">
                                     Block #{event.blockNumber}
                                 </Badge>
                             </Flex>
-                            <Text pt='2' fontSize='sm' color="#cdced4">
+                            <Text pt='1' fontSize='xs' color="#cdced4">
                                 {event.message}
                             </Text>
                         </Box>
                     </Flex>
                 ))}
+
             </Stack>
         </Box>
     );

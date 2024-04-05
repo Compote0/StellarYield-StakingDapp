@@ -21,6 +21,7 @@ type globalContextType = {
 	userDetails: User | null;
 	fetchUserDetails: () => void;
 	userBalance: BigNumberish;
+	refetchBalance: () => void;
 };
 
 const globalContextDefaultValues: globalContextType = {
@@ -30,7 +31,8 @@ const globalContextDefaultValues: globalContextType = {
 	approveToken: () => { },
 	userDetails: null,
 	fetchUserDetails: () => { },
-	userBalance: 0
+	userBalance: 0,
+	refetchBalance: () => { }
 };
 
 const GlobalContext = createContext<globalContextType>(globalContextDefaultValues);
@@ -48,7 +50,7 @@ export const GlobalContextProvider = ({ children }: Props) => {
 	const [events, setEvents] = useState<Event[]>(mockEvents);
 	const deployedBlockNumber = process.env.NEXT_PUBLIC_DEPLOYED_BLOCKNUMBER || 0;
 	const [userDetails, setUserDetails] = useState<User | null>(null);
-
+	const [userBalance, setUserBalance] = useState<BigNumberish>(0);
 
 	// Approve the token
 	const approveToken = (approvalStatus: boolean) => {
@@ -65,7 +67,8 @@ export const GlobalContextProvider = ({ children }: Props) => {
 
 	//Get the user STELLAR balance
 	const {
-		data: balance,
+		data: balanceData,
+		refetch: refetchBalance,
 	} = useReadContract({
 		address: stellarTokenAddress,
 		abi: stellarTokenAbi,
@@ -104,31 +107,38 @@ export const GlobalContextProvider = ({ children }: Props) => {
 			blockNumber: Number(deployedBlockNumber),
 		};
 
-		const combinedEvents: Event[] = [deployEvent].concat(
-			stakedEvent.map(event => ({
-				icon: "LockIcon",
-				title: "Staked",
-				message: `Address ${shortenAddress(event.args.user)} staked ${ethers.formatUnits(event.args.amount, 18)} STELLAR.`,
-				blockNumber: Number(event.blockNumber),
-			})),
-			withdrawnEvent.map(event => ({
-				icon: "DownloadIcon",
-				title: "Withdrawn",
-				message: `Address ${shortenAddress(event.args.user)} withdrawn ${ethers.formatUnits(event.args.amount, 18)} STELLAR.`,
-				blockNumber: Number(event.blockNumber),
-			})),
-			rewardPaidEvent.map(event => ({
-				icon: "CheckIcon",
-				title: "Reward Paid",
-				message: `Address ${shortenAddress(event.args.user)} received a reward of ${ethers.formatUnits(event.args.reward, 18)} STELLAR.`,
-				blockNumber: Number(event.blockNumber),
-			}))
-		);
-
+		const combinedEvents: Event[] = [deployEvent]
+			.concat(
+				stakedEvent.map(event => ({
+					icon: "LockIcon",
+					title: "Staked",
+					message: `Address ${shortenAddress(event.args.user)} staked ${parseFloat(ethers.formatUnits(event.args.amount, 18)).toFixed(3)} STELLAR.`,
+					blockNumber: Number(event.blockNumber),
+				})),
+				withdrawnEvent.map(event => ({
+					icon: "DownloadIcon",
+					title: "Withdrawn",
+					message: `Address ${shortenAddress(event.args.user)} withdrawn ${parseFloat(ethers.formatUnits(event.args.amount, 18)).toFixed(3)} STELLAR.`,
+					blockNumber: Number(event.blockNumber),
+				})),
+				rewardPaidEvent.map(event => ({
+					icon: "CheckIcon",
+					title: "Reward Paid",
+					message: `Address ${shortenAddress(event.args.user)} received a reward of ${parseFloat(ethers.formatUnits(event.args.reward, 18)).toFixed(3)} STELLAR.`,
+					blockNumber: Number(event.blockNumber),
+				}))
+			);
 		combinedEvents.sort((a, b) => b.blockNumber - a.blockNumber);
 
 		setEvents(combinedEvents);
 	};
+
+	useEffect(() => {
+		if (balanceData) {
+			const formattedBalance = parseFloat(ethers.formatEther(balanceData)).toFixed(2);
+			setUserBalance(formattedBalance);
+		}
+	}, [balanceData]);
 
 	// useeffect to get the user details
 	useEffect(() => {
@@ -142,8 +152,6 @@ export const GlobalContextProvider = ({ children }: Props) => {
 			setUserDetails(details);
 		}
 	}, [data]);
-
-
 
 	// useeffect to get the events
 	useEffect(() => {
@@ -161,13 +169,19 @@ export const GlobalContextProvider = ({ children }: Props) => {
 		}
 	};
 
+	const fetchUserBalance = () => {
+		refetchBalance();
+	};
+
 	const value = {
 		events,
 		getEvents,
 		isApproved,
 		approveToken,
 		userDetails,
+		userBalance,
 		fetchUserDetails,
+		fetchUserBalance,
 	};
 
 	return <GlobalContext.Provider value={value}>{children}</GlobalContext.Provider>;

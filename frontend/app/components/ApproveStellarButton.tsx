@@ -10,7 +10,7 @@ const ApproveStellarButton = () => {
     const toast = useToast();
     const { address } = useAccount();
     const [isApproveLoading, setIsApproveLoading] = useState(false);
-    const { approveToken } = useGlobalContext();
+    const { approveToken, fetchUserDetails, fetchUserBalance } = useGlobalContext();
 
     const {
         data: hash,
@@ -79,6 +79,8 @@ const ApproveStellarButton = () => {
     };
 
     useEffect(() => {
+        fetchUserDetails();
+        fetchUserBalance();
         if (isSuccess) {
             approveToken(true);
             toast({
