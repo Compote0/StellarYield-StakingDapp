@@ -4,8 +4,8 @@ import { stakingStellarAddress, stakingStellarAbi } from "../constants/stakingSt
 import { useReadContract, useAccount } from "wagmi";
 import { parseAbiItem } from "viem";
 import { publicClient } from "../utils/client";
-import { Event } from "../types/Event";
-import { User } from "../types/User";
+import { Event } from "../types/event";
+import { User } from "../types/user";
 import { shortenAddress } from "../utils/shortenAddress";
 import mockEvents from "../utils/mockEvents";
 import { ethers } from "ethers";
@@ -22,6 +22,7 @@ type globalContextType = {
 	fetchUserDetails: () => void;
 	userBalance: BigNumberish;
 	refetchBalance: () => void;
+	fetchUserBalance: () => void;
 };
 
 const globalContextDefaultValues: globalContextType = {
@@ -32,7 +33,8 @@ const globalContextDefaultValues: globalContextType = {
 	userDetails: null,
 	fetchUserDetails: () => { },
 	userBalance: 0,
-	refetchBalance: () => { }
+	refetchBalance: () => { },
+	fetchUserBalance: () => { }
 };
 
 const GlobalContext = createContext<globalContextType>(globalContextDefaultValues);
@@ -112,19 +114,25 @@ export const GlobalContextProvider = ({ children }: Props) => {
 				stakedEvent.map(event => ({
 					icon: "LockIcon",
 					title: "Staked",
-					message: `Address ${shortenAddress(event.args.user)} staked ${parseFloat(ethers.formatUnits(event.args.amount, 18)).toFixed(3)} STELLAR.`,
+					message: event.args.amount !== undefined
+						? `Address ${shortenAddress(event.args.user)} staked ${parseFloat(ethers.formatUnits(event.args.amount, 18)).toFixed(3)} STELLAR.`
+						: 'Staking event detected without amount specified.',
 					blockNumber: Number(event.blockNumber),
 				})),
 				withdrawnEvent.map(event => ({
 					icon: "DownloadIcon",
 					title: "Withdrawn",
-					message: `Address ${shortenAddress(event.args.user)} withdrawn ${parseFloat(ethers.formatUnits(event.args.amount, 18)).toFixed(3)} STELLAR.`,
+					message: event.args.amount !== undefined && event.args.user !== undefined
+						? `Address ${shortenAddress(event.args.user)} withdrawn ${parseFloat(ethers.formatUnits(event.args.amount, 18)).toFixed(3)} STELLAR.`
+						: 'Withdrawal event detected without complete details.',
 					blockNumber: Number(event.blockNumber),
 				})),
 				rewardPaidEvent.map(event => ({
 					icon: "CheckIcon",
 					title: "Reward Paid",
-					message: `Address ${shortenAddress(event.args.user)} received a reward of ${parseFloat(ethers.formatUnits(event.args.reward, 18)).toFixed(3)} STELLAR.`,
+					message: event.args.reward !== undefined && event.args.user !== undefined
+						? `Address ${shortenAddress(event.args.user)} received a reward of ${parseFloat(ethers.formatUnits(event.args.reward, 18)).toFixed(3)} STELLAR.`
+						: 'Reward payment event detected without complete details.',
 					blockNumber: Number(event.blockNumber),
 				}))
 			);
@@ -182,6 +190,7 @@ export const GlobalContextProvider = ({ children }: Props) => {
 		userBalance,
 		fetchUserDetails,
 		fetchUserBalance,
+		refetchBalance
 	};
 
 	return <GlobalContext.Provider value={value}>{children}</GlobalContext.Provider>;

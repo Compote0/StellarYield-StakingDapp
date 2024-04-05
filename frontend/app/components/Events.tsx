@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, Flex, Text, Badge, useTheme, Heading, Stack, StackDivider, Circle } from "@chakra-ui/react";
 import { useGlobalContext } from "../context/app-context";
-import { Event } from "../types/Event";
+import { Event } from "../types/event";
 import {
     SettingsIcon,
     LockIcon,

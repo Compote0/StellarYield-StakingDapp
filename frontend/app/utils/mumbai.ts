@@ -4,7 +4,7 @@ const MUMBAI_RPC_URL = process.env.NEXT_PUBLIC_MUMBAI_RPC_URL || "";
 
 export const mumbai = /*#__PURE__*/ defineChain({
     id: 80001,
-    name: "Sepolia",
+    name: "Mumbai",
     nativeCurrency: { name: "Mumbai Matic", symbol: "MATIC", decimals: 18 },
     rpcUrls: {
         default: {
@@ -13,7 +13,7 @@ export const mumbai = /*#__PURE__*/ defineChain({
     },
     blockExplorers: {
         default: {
-            name: "Etherscan",
+            name: "Polygonscan",
             url: "https://mumbai.polygonscan.com",
             apiUrl: "https://api-testnet.polygonscan.com/api",
         },

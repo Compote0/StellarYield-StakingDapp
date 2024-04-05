@@ -113,7 +113,7 @@ const StellarStaking = () => {
             {/* Staking */}
             <Box width={{ base: "80%", md: "30%" }} p="5" borderRadius="md" boxShadow="base" backgroundColor="#373c56" borderColor='#828595' borderWidth="1px" gap="5">
                 <Text mb="2" fontWeight="bold" color='#cdced4'>Stake Your Tokens - Locked 9 days</Text>
-                <Text fontSize="sm" color="gray.500" mb="1">Your wallet balance: {userBalance} STELLAR</Text>
+                <Text fontSize="sm" color="gray.500" mb="1">Your wallet balance: {userBalance.toString()} STELLAR</Text>
                 <Input
                     placeholder="Amount to stake"
                     onChange={(e) => setDepositValue(e.target.value)}
@@ -165,7 +165,7 @@ const StellarStaking = () => {
                             </Badge>
                         </Flex>
                         <Text fontSize="sm" color="gray.500" mb="1">
-                            Your staked STELLAR: {userDetails.stakedAmount}
+                            Your staked STELLAR: {userDetails.stakedAmount.toFixed(3)}
                         </Text>
                     </Flex>
                 )}

@@ -1,7 +1,7 @@
 import { createPublicClient, http } from 'viem'
-import { hardhat } from 'viem/chains'
+import { polygonMumbai } from 'viem/chains'
 
-export const publicClient = createPublicClient({ 
-  chain: hardhat,
+export const publicClient = createPublicClient({
+  chain: polygonMumbai,
   transport: http()
 })
