@@ -9,6 +9,9 @@ import { User } from "../types/User";
 import { shortenAddress } from "../utils/shortenAddress";
 import mockEvents from "../utils/mockEvents";
 import { ethers } from "ethers";
+import { BigNumberish } from 'ethers';
+import { stellarTokenAbi, stellarTokenAddress } from "../constants/stellarToken";
+
 
 type globalContextType = {
 	events: Event[];
@@ -16,6 +19,8 @@ type globalContextType = {
 	isApproved: boolean;
 	approveToken: (approvalStatus: boolean) => void;
 	userDetails: User | null;
+	fetchUserDetails: () => void;
+	userBalance: BigNumberish;
 };
 
 const globalContextDefaultValues: globalContextType = {
@@ -24,6 +29,8 @@ const globalContextDefaultValues: globalContextType = {
 	isApproved: false,
 	approveToken: () => { },
 	userDetails: null,
+	fetchUserDetails: () => { },
+	userBalance: 0
 };
 
 const GlobalContext = createContext<globalContextType>(globalContextDefaultValues);
@@ -40,6 +47,8 @@ export const GlobalContextProvider = ({ children }: Props) => {
 
 	const [events, setEvents] = useState<Event[]>(mockEvents);
 	const deployedBlockNumber = process.env.NEXT_PUBLIC_DEPLOYED_BLOCKNUMBER || 0;
+	const [userDetails, setUserDetails] = useState<User | null>(null);
+
 
 	// Approve the token
 	const approveToken = (approvalStatus: boolean) => {
@@ -47,12 +56,21 @@ export const GlobalContextProvider = ({ children }: Props) => {
 	};
 
 	// Get the user details
-	const { data: userDetails, refetch: refetchUserDetails } = useReadContract<User>({
+	const { data, refetch } = useReadContract({
 		address: stakingStellarAddress,
 		abi: stakingStellarAbi,
-		functionName: "getUserDetails",
+		functionName: 'getUserDetails',
 		args: [address],
-		watch: true,
+	});
+
+	//Get the user STELLAR balance
+	const {
+		data: balance,
+	} = useReadContract({
+		address: stellarTokenAddress,
+		abi: stellarTokenAbi,
+		functionName: "balanceOf",
+		args: [address],
 	});
 
 
@@ -112,6 +130,22 @@ export const GlobalContextProvider = ({ children }: Props) => {
 		setEvents(combinedEvents);
 	};
 
+	// useeffect to get the user details
+	useEffect(() => {
+		if (data) {
+			const [stakedAmountBN, pendingRewardsBN, unlockTimeBN] = data as [BigNumberish, BigNumberish, BigNumberish];
+			const details: User = {
+				stakedAmount: parseFloat(ethers.formatEther(stakedAmountBN)),
+				pendingRewards: parseFloat(ethers.formatEther(pendingRewardsBN)),
+				unlockTime: Number(unlockTimeBN),
+			};
+			setUserDetails(details);
+		}
+	}, [data]);
+
+
+
+	// useeffect to get the events
 	useEffect(() => {
 		const getAllEvents = async () => {
 			if (address !== undefined) {
@@ -121,12 +155,19 @@ export const GlobalContextProvider = ({ children }: Props) => {
 		getAllEvents();
 	}, [address]);
 
+	const fetchUserDetails = () => {
+		if (address) {
+			refetch();
+		}
+	};
+
 	const value = {
 		events,
 		getEvents,
 		isApproved,
 		approveToken,
 		userDetails,
+		fetchUserDetails,
 	};
 
 	return <GlobalContext.Provider value={value}>{children}</GlobalContext.Provider>;

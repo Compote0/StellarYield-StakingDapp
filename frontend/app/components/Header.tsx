@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import Logo from '../../public/logo.png';
 import Title from 'material-ui/svg-icons/editor/title';
 
-const scrollToSection = (sectionId) => {
+const scrollToSection = (sectionId: string) => {
   const section = document.getElementById(sectionId);
   if (section) {
     section.scrollIntoView({ behavior: 'smooth' });

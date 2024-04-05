@@ -11,7 +11,7 @@ const StellarStaking = () => {
     const toast = useToast();
     const [amount, setAmount] = useState('');
     const [depositValue, setDepositValue] = useState('');
-    const { isApproved, getEvents } = useGlobalContext();
+    const { isApproved, getEvents, fetchUserDetails, userDetails } = useGlobalContext();
 
     const {
         data: hash,
@@ -85,13 +85,15 @@ const StellarStaking = () => {
         }
     };
 
-    const { isLoading, isSuccess } = useWaitForTransactionReceipt({
+    const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
         hash,
-    });
+    })
+
 
     useEffect(() => {
         getEvents();
-        if (isSuccess) {
+        fetchUserDetails();
+        if (isConfirmed) {
             toast({
                 title: 'Transaction successful',
                 status: 'success',
@@ -99,7 +101,7 @@ const StellarStaking = () => {
                 isClosable: true,
             });
         }
-    }, [isSuccess]);
+    }, [isConfirmed]);
 
     return (
         <Flex id='stakeStellar' height="100vh" direction="column" gap="5" padding="5" backgroundColor="#06122C" borderRadius="lg" boxShadow="md" alignItems="center" justifyContent="center">
@@ -110,6 +112,7 @@ const StellarStaking = () => {
             {/* Staking */}
             <Box width={{ base: "80%", md: "30%" }} p="5" borderRadius="md" boxShadow="base" backgroundColor="#373c56" borderColor='#828595' borderWidth="1px" gap="5">
                 <Text mb="3" fontWeight="bold" color='#cdced4'>Stake Your Tokens</Text>
+                {userDetails && <Text color='#cdced4'>{`Your staked STELLAR: ${userDetails.stakedAmount}`}</Text>}
                 <Input
                     placeholder="Amount to stake"
                     onChange={(e) => setDepositValue(e.target.value)}
@@ -135,6 +138,7 @@ const StellarStaking = () => {
             {/* Claiming */}
             <Box width={{ base: "80%", md: "30%" }} p="5" borderRadius="md" boxShadow="base" backgroundColor="#373c56" borderColor='#828595' borderWidth="1px">
                 <Text mb="3" fontWeight="bold" color='#cdced4'>Claim Rewards</Text>
+                {userDetails && <Text color='#cdced4'>{`Your pending rewards: ${userDetails.pendingRewards}`}</Text>}
                 <Button
                     colorScheme="blue"
                     onClick={handleClaim}
@@ -147,6 +151,11 @@ const StellarStaking = () => {
             {/* Withdrawing */}
             <Box width={{ base: "80%", md: "30%" }} p="5" borderRadius="md" boxShadow="base" backgroundColor="#373c56" borderColor='#828595' borderWidth="1px">
                 <Text mb="3" fontWeight="bold" color='#cdced4'>Withdraw Tokens</Text>
+                {userDetails && (
+                    <Text color='#cdced4'>
+                        Unlock Time: {new Date(userDetails.unlockTime * 1000).toLocaleString()}
+                    </Text>
+                )}
                 <Input
                     placeholder="Amount to withdraw"
                     onChange={(e) => setAmount(e.target.value)}
