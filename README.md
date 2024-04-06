@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  Built with <strong>Hardhat, TypeScript, Next.js, wagmi, viem, RainbowKit, Chakra UI, TailwindCSS</strong>
+  Deployed on  <strong>Polygon Mumbai and Vercel</strong>, and built with <strong>Hardhat, TypeScript, Next.js, wagmi, viem, RainbowKit, Chakra UI, TailwindCSS</strong>
 </p>
 
 <p align="center">
@@ -14,7 +14,7 @@ Enter the dapp : 👉 https://stellar-yield-staking-dapp.vercel.app/
 
 <hr>
 
-<h2 align="center">📜 Contracts 📜</h2>
+<h2 align="center">📜 Mumbai Contracts 📜</h2>
 
 <p align="center">
   Stellar Token: <code>0x17eB782f1e5F2E0D3004BB90494aEE7275E3049c</code><br>
