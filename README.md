@@ -13,7 +13,7 @@ Stellar Yield demonstration video : https://www.loom.com/share/8623053dc5cb43919
 </p>
 
 <p align="center">
-Enter the dapp : 👉 https://stellar-yield-staking-dapp.vercel.app/
+Enter the dapp : 👉 https://stellar-yield.vercel.app/
 </p>
 
 <hr>
