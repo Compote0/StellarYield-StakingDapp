@@ -4,7 +4,7 @@ import Main from "./components/Main";
 import NotConnected from "./components/NotConnected";
 import StakeMatic from "./components/MaticStaking";
 import StakeStellar from "./components/StellarStaking";
-import Lottery from "./components/Lottery";
+import Lottery from "./components/lottery";
 
 export default function Home() {
   const { isConnected } = useAccount();

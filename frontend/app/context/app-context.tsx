@@ -8,8 +8,7 @@ import { Event } from "../types/event";
 import { User } from "../types/user";
 import { shortenAddress } from "../utils/shortenAddress";
 import mockEvents from "../utils/mockEvents";
-import { ethers } from "ethers";
-import { BigNumberish } from 'ethers';
+import { ethers, BigNumberish } from "ethers";
 import { stellarTokenAbi, stellarTokenAddress } from "../constants/stellarToken";
 
 
@@ -141,10 +140,14 @@ export const GlobalContextProvider = ({ children }: Props) => {
 		setEvents(combinedEvents);
 	};
 
+	// useeffect to get the user balance
 	useEffect(() => {
-		if (balanceData) {
-			const formattedBalance = parseFloat(ethers.formatEther(balanceData)).toFixed(2);
+		try {
+			const formattedBalance = parseFloat(ethers.formatEther(balanceData as ethers.BigNumberish)).toFixed(3);
 			setUserBalance(formattedBalance);
+		} catch (error) {
+			console.error("Erreur lors de la conversion de balanceData:", error);
+			setUserBalance('0.00');
 		}
 	}, [balanceData]);
 

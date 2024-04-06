@@ -16,13 +16,14 @@ import {
   QueryClient,
 } from "@tanstack/react-query";
 import { ReactNode } from 'react';
+import { polygonMumbai } from './utils/polygonMumbai';
 
 const WALLETCONNECT_PROJECTID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECTID || "";
 
 const config = getDefaultConfig({
   appName: 'My RainbowKit App',
   projectId: WALLETCONNECT_PROJECTID,
-  chains: [hardhat],
+  chains: [polygonMumbai],
   ssr: true, // If your dApp uses server side rendering (SSR)
 });
 

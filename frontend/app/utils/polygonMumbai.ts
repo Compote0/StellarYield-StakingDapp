@@ -2,9 +2,9 @@ import { defineChain } from "viem";
 
 const MUMBAI_RPC_URL = process.env.NEXT_PUBLIC_MUMBAI_RPC_URL || "";
 
-export const mumbai = /*#__PURE__*/ defineChain({
+export const polygonMumbai = /*#__PURE__*/ defineChain({
     id: 80001,
-    name: "Mumbai",
+    name: "Polygon Mumbai",
     nativeCurrency: { name: "Mumbai Matic", symbol: "MATIC", decimals: 18 },
     rpcUrls: {
         default: {
