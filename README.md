@@ -9,6 +9,10 @@
 </p>
 
 <p align="center">
+Stellar Yield demonstration video : https://www.loom.com/share/8623053dc5cb43919cc2b53eb6cd7926
+</p>
+
+<p align="center">
 Enter the dapp : 👉 https://stellar-yield-staking-dapp.vercel.app/
 </p>
 
