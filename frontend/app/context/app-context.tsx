@@ -7,7 +7,6 @@ import { publicClient } from "../utils/client";
 import { Event } from "../types/event";
 import { User } from "../types/user";
 import { shortenAddress } from "../utils/shortenAddress";
-import mockEvents from "../utils/mockEvents";
 import { ethers, BigNumberish } from "ethers";
 import { stellarTokenAbi, stellarTokenAddress } from "../constants/stellarToken";
 
@@ -48,8 +47,8 @@ export const GlobalContextProvider = ({ children }: Props) => {
 	const [isApproved, setIsApproved] = useState(false);
 	const { address } = useAccount();
 
-	const [events, setEvents] = useState<Event[]>(mockEvents);
-	const deployedBlockNumber = process.env.NEXT_PUBLIC_DEPLOYED_BLOCKNUMBER || 0;
+	const [events, setEvents] = useState<Event[]>([]);
+	const deployedBlockNumber = BigInt(process.env.NEXT_PUBLIC_DEPLOYED_BLOCKNUMBER || "0");
 	const [userDetails, setUserDetails] = useState<User | null>(null);
 	const [userBalance, setUserBalance] = useState<BigNumberish>(0);
 
