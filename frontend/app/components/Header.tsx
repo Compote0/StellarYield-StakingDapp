@@ -3,7 +3,6 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import Image from 'next/image';
 import React, { useState, useEffect } from 'react';
 import Logo from '../../public/logo.png';
-import Title from 'material-ui/svg-icons/editor/title';
 
 const scrollToSection = (sectionId: string) => {
   const section = document.getElementById(sectionId);
