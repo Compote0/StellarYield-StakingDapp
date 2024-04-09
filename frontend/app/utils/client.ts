@@ -1,5 +1,5 @@
 import { createPublicClient, http } from 'viem'
-import { polygonMumbai } from 'viem/chains'
+import { polygonMumbai } from './polygonMumbai'
 
 export const publicClient = createPublicClient({
   chain: polygonMumbai,
